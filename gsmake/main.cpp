@@ -25,8 +25,6 @@ int pmain(lua_State *L)
 
     stream << "package.path = '" << home.generic_string() << "/lib/gsmake/?.lua;" << home.generic_string() << "/lib/gsmake/?/init.lua'";
 
-    lemonD(lemon::log::get("gsmake"),"%s",stream.str().c_str());
-
     if(luaL_dostring(L,stream.str().c_str()))
     {
         return luaL_error(L,lua_tostring(L,-1));
@@ -34,8 +32,6 @@ int pmain(lua_State *L)
 
 
     auto mainFile = home / "/lib/gsmake/main.lua";
-
-    lemonE(lemon::log::get("lake"),"%s",mainFile.string().c_str());
 
     if(luaL_dofile(L,mainFile.generic_string().c_str()))
     {

@@ -30,5 +30,5 @@ test_(lookup) {
 
 
 test_(command) {
-    exec("ls").run("-l");
+    exec("netstat").run("-an");
 }
