@@ -20,7 +20,7 @@ function module.new(name,...)
          __gc =metatable.final;
      })
 
-    return obj
+    return obj   
 end
 
 function module.clone(prototype)
