@@ -2,6 +2,8 @@
 #ifndef LEMON_OS_EXEC_POSIX_HPP
 #define LEMON_OS_EXEC_POSIX_HPP
 
+#include <unistd.h>
+#include <sys/wait.h>
 
 #include <string>
 #include <thread>

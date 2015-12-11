@@ -42,7 +42,7 @@ namespace lemon { namespace fs {
 
 			if(nullptr != entry)
 			{
-				_filepath = std::string(entry->d_name, entry->d_name + entry->d_namlen);
+				_filepath = std::string(entry->d_name);
 				return true;
 			}
 

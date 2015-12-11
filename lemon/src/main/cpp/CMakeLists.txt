@@ -12,7 +12,7 @@ if(WIN32)
 elseif(APPLE)
     add_definitions(-D_BSD_SOURCE)
 else()
-    add_definitions(-D_POSIX_SOURCE)
+    add_definitions(-D_POSIX_SOURCE -DLUA_USE_LINUX)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/main/cpp)
@@ -28,6 +28,8 @@ file(GLOB_RECURSE header_files
         ${CMAKE_CURRENT_SOURCE_DIR}/*.hxx)
 
 add_library(lemon STATIC ${header_files} ${src_files})
+
+target_link_libraries(lemon pthread dl)
 
 foreach(FILE ${header_files})
     get_filename_component(FILE_NAME ${FILE} NAME)
