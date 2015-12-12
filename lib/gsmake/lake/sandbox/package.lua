@@ -7,6 +7,8 @@ local module = {}
 
 function module.ctor(env,package)
 
+    env.lake = package.lake
+
     env.name = function(name)
         package.Name = name
     end
@@ -32,6 +34,7 @@ function module.ctor(env,package)
             assert(type(F) == "function","the input F must be a function")
 
             package.Tasks[name] = {
+                Lake            = package.lake;
                 Name            = name;
                 F               = F;
                 Package         = package;

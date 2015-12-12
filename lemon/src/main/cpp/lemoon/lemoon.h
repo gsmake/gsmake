@@ -15,6 +15,7 @@ EXTERN_C int luaopen_lemoon_fs(lua_State *L);
 EXTERN_C int luaopen_lemoon_log(lua_State *L);
 EXTERN_C int luaopen_lemoon_os(lua_State *L);
 EXTERN_C int luaopen_lemoon_regex(lua_State *L);
+EXTERN_C int luaopen_lemoon_uuid(lua_State *L);
 
 EXTERN_C int luaopen_lemoon(lua_State *L);
 

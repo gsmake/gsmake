@@ -29,7 +29,14 @@ file(GLOB_RECURSE header_files
 
 add_library(lemon STATIC ${header_files} ${src_files})
 
-target_link_libraries(lemon pthread dl)
+
+if(WIN32)
+elseif(APPLE)
+else()
+    target_link_libraries(lemon pthread dl)
+endif()
+
+
 
 foreach(FILE ${header_files})
     get_filename_component(FILE_NAME ${FILE} NAME)

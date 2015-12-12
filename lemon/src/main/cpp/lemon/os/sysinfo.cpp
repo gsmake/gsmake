@@ -133,6 +133,12 @@ namespace lemon { namespace os {
 
     std::tuple<std::string, bool> lookup(const std::string & cmd)
     {
+
+		if(fs::exists(cmd))
+		{
+			return std::make_tuple(fs::absolute(cmd).string(), true);
+		}
+
         auto path = os::getenv("PATH");
 
         if(!std::get<1>(path))

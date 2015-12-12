@@ -71,7 +71,8 @@ function module:run(name,...)
 
             local subdir = task.Package.Name:gsub("%.","/")
 
-            local sandbox = class.new("lemoon.sandbox","lake.sandbox.pluginrunner",filepath.join(task.Owner.Path,".gsmake/gsmake/",subdir,"lib"))
+            local sandbox = class.new(
+            "lemoon.sandbox","lake.sandbox.pluginrunner",task.Lake,filepath.join(task.Owner.Path,".gsmake/gsmake/lib"))
 
             if i == #callstack then
                 sandbox:call(task.F,task,...)

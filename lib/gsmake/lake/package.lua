@@ -24,7 +24,6 @@ function module.ctor(lake,path,name,version)
     local gsmakeFilePath = filepath.join(path,lake.Config.GSMAKE_FILE)
 
     if fs.exists(gsmakeFilePath) then
-
         logger:V("found a standard lake package :%s",path)
 
         local sandbox = class.new("lemoon.sandbox","lake.sandbox.package",obj)

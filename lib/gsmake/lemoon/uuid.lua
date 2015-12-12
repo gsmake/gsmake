@@ -1,2 +1,1 @@
-return lemoon.uuid()
-
+return require "lemoonc.uuid"

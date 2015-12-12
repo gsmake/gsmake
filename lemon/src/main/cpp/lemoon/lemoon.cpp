@@ -10,6 +10,7 @@ EXTERN_C int luaopen_lemoon(lua_State *L)
     luaL_requiref(L,"lemoonc.os",luaopen_lemoon_os,0);
     luaL_requiref(L,"lemoonc.regex",luaopen_lemoon_regex,0);
     luaL_requiref(L,"lemoonc.sqlite3",luaopen_lsqlite3,0);
+	luaL_requiref(L, "lemoonc.uuid", luaopen_lemoon_uuid, 0);
 
     return 0;
 }

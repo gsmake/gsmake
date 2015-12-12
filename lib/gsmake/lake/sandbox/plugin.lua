@@ -19,6 +19,7 @@ function module.ctor(env,plugin,path)
             assert(type(F) == "function","the input F must be a function")
 
             plugin.Tasks[name] = {
+                Lake            = plugin.Package.lake;
                 Name            = name;
                 F               = F;
                 Owner           = plugin.Owner;
@@ -30,8 +31,7 @@ function module.ctor(env,plugin,path)
 
     setmetatable(env.task,task_metatable)
 
-    env.plugin = plugin
-
+    env.lake = plugin.Package.lake
 
     env.package.path = string.format("%s;%s/?.lua",env.package.path,path)
     env.package.cpath = string.format("%s;%s/?%s",env.package.cpath,path,sys.SO_NAME)

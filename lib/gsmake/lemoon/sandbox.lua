@@ -1,4 +1,7 @@
-local class = require "lemoon.class"
+local class     = require "lemoon.class"
+local class     = require "lemoon.class"
+
+local logger    = class.new("lemoon.log","lake")
 
 local module = {}
 

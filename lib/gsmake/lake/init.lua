@@ -57,32 +57,35 @@ function module.ctor(workspace)
 
 end
 
+function module:loadSystemPlugin(dir)
+
+    if fs.exists(filepath.join(dir,self.Config.GSMAKE_FILE)) then
+        local package = self.Loader:load(dir)
+        self.DB:save_source(package.Name,package.Version,dir,dir,true)
+        return
+    end
+
+    fs.list(dir,function(entry)
+        if entry == "." or entry == ".." then return end
+
+        local path = filepath.join(dir,entry)
+
+        if fs.isdir(path) then
+            self:loadSystemPlugin(path)
+        end
+    end)
+
+end
+
 function module:run(...)
     self.DB     = class.new("lake.db",self)
     self.Sync   = class.new("lake.sync",self)
     self.Loader = class.new("lake.loader",self)
-
-
     -- load default plugins
 
     local pluginDir = filepath.join(self.Config.GSMAKE_HOME,"lib/gsmake/plugin")
 
-    logger:I("load default plugins ...")
-
-    fs.list(pluginDir,function(entry)
-
-        if entry == "." or entry == ".." then return end
-
-        local path = filepath.join(pluginDir,entry)
-
-        if fs.exists(filepath.join(path,self.Config.GSMAKE_FILE)) then
-            local package = self.Loader:load(path)
-            self.DB:save_source(package.Name,package.Version,path,path,true)
-        end
-    end)
-
-    logger:I("load default plugins -- finish")
-
+    self:loadSystemPlugin(pluginDir)
 
     -- load root package
     local package = self.Loader:load(self.Config.GSMAKE_WORKSPACE)

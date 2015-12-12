@@ -37,7 +37,7 @@ function module:load()
 
     local subdir = self.Name:gsub("%.","/")
 
-    self.Path = filepath.join(self.InstallDir,"gsmake",subdir,"lib",subdir)
+    self.Path = filepath.join(self.InstallDir,"gsmake",self.Name)
 
     return self.Package
 

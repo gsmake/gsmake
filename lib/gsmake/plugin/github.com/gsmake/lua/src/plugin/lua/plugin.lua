@@ -5,16 +5,14 @@ local logger    = class.new("lemoon.log","lake")
 
 local config = {
 
-    skipDirs        = plugin.Config.GSMAKE_SKIP_DIRS;
-
+    skipDirs        = lake.Config.GSMAKE_SKIP_DIRS;
     srcDirs         = { "src/main/lua" };
-
     pluginSrcDirs   = { "src/plugin/lua" };
 }
 
 
-task.install = function(self,prefix)
 
+task.install = function(self,prefix)
     if prefix == nil or prefix == "" then
         error("task install expect install path")
     end
@@ -43,9 +41,7 @@ task.install = function(self,prefix)
         end
     end
 
-    local subdir = name:gsub("%.","/")
-
-    local targetPath  =  filepath.join(prefix,"gsmake",subdir,"lib",subdir)
+    local targetPath  =  filepath.join(prefix,"gsmake",name)
 
     -- remove preversion plugin
     if fs.exists(targetPath) then
@@ -61,7 +57,7 @@ task.install = function(self,prefix)
     end
 
     -- remove preversion lua library
-    targetPath = filepath.join(prefix,"lib",subdir)
+    targetPath = filepath.join(prefix,"lib")
 
     if fs.exists(targetPath) then
         fs.rm(targetPath,true)
@@ -74,7 +70,6 @@ task.install = function(self,prefix)
             fs.copy_dir_and_children(srcDir,targetPath,skipDirs)
         end
     end
-
 end
 
 task.install.Desc = "lua language install task"
