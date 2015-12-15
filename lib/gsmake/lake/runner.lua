@@ -69,10 +69,8 @@ function module:run(name,...)
         for _,task in ipairs(taskgroup) do
             logger:D("\tfrom package [%s:%s] ...",task.Package.Name,task.Package.Version)
 
-            local subdir = task.Package.Name:gsub("%.","/")
-
             local sandbox = class.new(
-            "lemoon.sandbox","lake.sandbox.pluginrunner",task.Lake,filepath.join(task.Owner.Path,".gsmake/gsmake/lib"))
+            "lemoon.sandbox","lake.sandbox.pluginrunner",task.Lake,filepath.join(task.Owner.Path,".gsmake/gsmake",task.Package.Name))
 
             if i == #callstack then
                 sandbox:call(task.F,task,...)

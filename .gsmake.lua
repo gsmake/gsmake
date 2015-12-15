@@ -18,9 +18,9 @@ clang = {
     };
 
     ["gsmake"] = {
-        type    = "exe";
-        src     = ""; -- rewrite default srcDirs(src/main/cpp)
-        dependencies = {
+        type            = "exe";
+        src             = ""; -- rewrite default srcDirs(src/main/cpp)
+        dependencies    = {
             "lemon";
             { name  = "github.com/lemonkit/lemon"; module = "lemon" };
         };

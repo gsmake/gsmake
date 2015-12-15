@@ -1,10 +1,19 @@
-local fs        = require "lemoon.fs"
 local class     = require "lemoon.class"
-local filepath  = require "lemoon.filepath"
-local logger    = class.new("lemoon.log","lake")
+
+task.cmakegen = function(self)
+    class.new("cmakegen",self):run()
+end
+task.cmakegen.Desc = "generate cmake build files"
+
+
+task.compile = function(self)
+
+end
+task.compile.Desc = "clang package compile task"
+task.compile.Prev = "cmakegen"
 
 task.install = function(self,install_path)
-    
-end
 
-task.install.Desc = "clang install task"
+end
+task.install.Desc = "clang package install package"
+task.install.Prev = "compile"
