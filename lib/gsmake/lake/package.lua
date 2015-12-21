@@ -14,6 +14,7 @@ function module.ctor(lake,path,name,version)
     local obj =
     {
         lake        = lake                                           ;
+        Lake        = lake                                           ;
         db          = lake.DB                                        ;
         Path        = path                                           ;
         Plugins     = {}                                             ; -- package scope register plugins

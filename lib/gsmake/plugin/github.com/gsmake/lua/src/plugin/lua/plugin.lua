@@ -13,6 +13,7 @@ local config = {
 
 
 task.install = function(self,prefix)
+
     if prefix == nil or prefix == "" then
         error("task install expect install path")
     end

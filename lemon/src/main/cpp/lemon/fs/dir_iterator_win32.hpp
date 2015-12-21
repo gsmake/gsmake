@@ -23,7 +23,7 @@ namespace lemon {namespace fs {
 
 				if ((_handler = FindFirstFileW(findpath.wstring().c_str(), &_context)) == INVALID_HANDLE_VALUE) 
 				{
-					throw std::error_code(GetLastError(), std::system_category());
+					throw std::system_error(GetLastError(), std::system_category());
 				}
 
 				_has_next = true;

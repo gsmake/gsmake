@@ -27,7 +27,7 @@ namespace lemoon{namespace log{
 
         lua_Debug debug;
 
-        lua_getstack(L,2, &debug);
+        lua_getstack(L,3, &debug);
 
         lua_getinfo(L,"lS", &debug);
 

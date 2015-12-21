@@ -14,7 +14,9 @@ lua = {
 
 clang = {
     ["lemon"] = {
-        type = "static";
+        type                = "static";
+        config              = "config.cmake"; -- the cmake config file
+        test_dependencies   = {};
     };
 
     ["gsmake"] = {

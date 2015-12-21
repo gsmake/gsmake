@@ -160,6 +160,12 @@ namespace lemoon{namespace{
 
         try
         {
+
+			if(!lemon::fs::is_directory(luaL_checkstring(L,1)))
+			{
+				return 0;
+			}
+
             auto iter = lemon::fs::directory_iterator(luaL_checkstring(L,1));
 
 

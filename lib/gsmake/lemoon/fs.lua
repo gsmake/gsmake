@@ -34,7 +34,7 @@ function module.copy_dir_and_children(from,to,skipdirs)
     module.list(from,function(entry)
         if entry == "." or entry == ".." then return end
 
-        for _,v in pairs(skipdirs) do
+        for _,v in pairs(skipdirs or {}) do
             if v == entry then return end
         end
 
@@ -45,6 +45,26 @@ function module.copy_dir_and_children(from,to,skipdirs)
             module.copy_dir_and_children(source,target,skipdirs)
         else
             module.copy_file(source,target)
+        end
+    end)
+end
+
+function module.match(path,pattern,skipdirs,fn)
+    module.list(path,function(entry)
+        if entry == "." or entry == ".." then return end
+
+        for _,v in pairs(skipdirs or {}) do
+            if v == entry then return end
+        end
+
+        local childpath = path .. "/".. entry
+
+        if module.isdir(childpath) then
+            module.match(childpath,pattern,skipdirs,fn)
+        else
+            if entry:match(pattern) == entry then
+                fn(path .. "/" .. entry)
+            end
         end
     end)
 end

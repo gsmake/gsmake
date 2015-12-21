@@ -23,7 +23,7 @@ task.install = function(self,install_path)
 	local srcDir = filepath.join(packagePath,"src/plugin/lua")
 
 	if fs.exists(srcDir) then
-		logger:I("copy\n\tfrom:%s\n\tto:%s",srcDir,targetPath)
+		logger:V("copy\n\tfrom:%s\n\tto:%s",srcDir,targetPath)
 		fs.copy_dir_and_children(srcDir,targetPath,lake.Config.GSMAKE_SKIP_DIRS)
 	end
 end
