@@ -18,9 +18,7 @@ function module.ctor(lake)
     return obj
 end
 
-function module:sync_remote(name,version)
-    logger:I("sync package '%s:%s' ... ",name,version)
-
+function module:get_sync_executor(name,version)
     for _,remote in pairs(self.lake.Remotes) do
 
         local url = regex.gsub(name,remote.Pattern,remote.URL)
@@ -35,30 +33,54 @@ function module:sync_remote(name,version)
                 error(string.format("load sync executor %s err :\n\t%s",executorName,executor))
             end
 
-            executor:sync_remote(url)
-
-
             logger:I("sync package '%s:%s' -- success ",name,version)
 
-            return
+            return true,executor,url
         end
     end
 
-    logger:E("sync package '%s:%s' -- failed,unknown remote site ",name,version)
+    return false
+end
+
+function module:sync_remote(name,version)
+    logger:I("sync package '%s:%s' ... ",name,version)
+
+    local ok, executor,url = self:get_sync_executor(name,version)
+
+    if not ok then
+        error(string.format("sync package '%s:%s' -- failed,unknown remote site ",name,version))
+    end
+
+    executor:sync_remote(url)
+
+    logger:I("sync package '%s:%s' -- success ",name,version)
+
 end
 
 function module:sync_source(name,version)
 
+    local ok, executor = self:get_sync_executor(name,version)
+
+    if not ok then
+        error(string.format("sync package '%s:%s' -- failed,unknown remote site ",name,version))
+    end
+
+    return executor:sync_source()
 end
 
 function module:sync(name,version)
+
+    if version == nil then
+        version = self.lake.Config.GSMAKE_DEFAULT_VERSION
+    end
+
     local path,ok = self.db:query_source(name,version)
 
     if ok and fs.exists(path) then
         return path
     end
 
-    self.db:query_sync(name,version)
+    path,ok = self.db:query_sync(name,version)
 
     if ok and fs.exists(path) then
         return self:sync_source(name,version)

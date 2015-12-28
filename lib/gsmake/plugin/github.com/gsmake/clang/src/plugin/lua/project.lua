@@ -73,6 +73,7 @@ function module:link(projects)
     end
 
     for _,dep in ipairs(deps) do
+
         if type(dep) == "table" then
             logger:D("found project [%s] dependency %s",self.Name,dep.name)
             -- link external package
@@ -80,14 +81,17 @@ function module:link(projects)
                 dep.version = self.lake.Config.GSMAKE_DEFAULT_VERSION
             end
 
-            local sourcePath = self.sync:sync(dep.name,dep.version)
+            -- sync the source package
+            local sourcePath = self.lake.Sync:sync(dep.name,dep.version)
 
-            local package = self.loader:load(sourcePath,dep.name,dep.version)
-
+            -- load the package
+            local package = self.lake.Loader:load(sourcePath,dep.name,dep.version)
+            -- link the source package
             package:link()
-
+            -- setup package
             package:setup()
 
+            -- TODO: execute package install task
             -- TODO: add proj to linked table
         else
             local proj = projects[dep]

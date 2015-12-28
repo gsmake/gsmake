@@ -69,7 +69,7 @@ namespace lemoon { namespace os{
 
         for(int i = 2;; i ++)
         {
-            if(lua_type(L,i) == LUA_TNONE)
+            if(lua_type(L,i) == LUA_TNONE || lua_type(L,i) == LUA_TNIL)
             {
                 break;
             }

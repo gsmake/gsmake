@@ -31,8 +31,8 @@ function module.ctor(lake,name,version)
 end
 
 
-function module:sync_source(package)
-
+function module:sync_source()
+    return self.db:query_source(self.name,self.version)
 end
 
 function module:sync_remote(remote)
@@ -40,9 +40,11 @@ function module:sync_remote(remote)
     local workdir = filepath.join(self.lake.Config.GSMAKE_REPO,"git",self.name)
 
     if not fs.exists(workdir) then
-        logger:I("workdir :%s",workdir)
+
         fs.mkdir(workdir,true)
     end
+
+    logger:I("workdir :%s",workdir)
 
     local repo = filepath.base(url.parse(remote).path):gsub("%.git","")
 
@@ -122,4 +124,3 @@ function module:sync_remote(remote)
 end
 
 return module
-

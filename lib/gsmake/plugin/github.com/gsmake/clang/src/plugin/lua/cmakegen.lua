@@ -74,7 +74,7 @@ function module:create_projects(name,config)
         module_source_files = { "*.c","*.cpp","*.cxx","*.cc" }
     end
 
-    local project = class.new(lake,"project",name,{
+    local project = class.new("project",lake,name,{
         CMAKE_OUTPUT_DIR            = self.cmake_output_dir;
         CMAKE_CONFIG_FILE_NAME      = module_cmakeconfig;
         CMAKE_HEADER_FILES          = module_header_files;
@@ -87,7 +87,7 @@ function module:create_projects(name,config)
     self.projects[name] = project
 
     if module_type ~= "exe" then
-        local test_project = class.new(lake,"project",name .. "-test",{
+        local test_project = class.new("project",lake,name .. "-test",{
             CMAKE_OUTPUT_DIR            = self.cmake_output_dir;
             CMAKE_CONFIG_FILE_NAME      = module_cmakeconfig;
             CMAKE_HEADER_FILES          = module_header_files;
@@ -103,6 +103,25 @@ function module:create_projects(name,config)
 end
 
 function module:gen()
+
+    local task = self.task
+
+    if not fs.exists(self.cmake_output_dir) then
+        fs.mkdir(self.cmake_output_dir,true)
+    end
+
+    local cmake_file_path = filepath.join(self.cmake_output_dir,"CMakeLists.txt")
+    logger:I("generate cmake file\n\t%s",cmake_file_path)
+
+    local f = assert(io.open(cmake_file_path,"w+"))
+
+    f:write(class.new("lemoon.tpl","cmake"):gen({
+        name = filepath.base(task.Owner.Name);
+    }))
+
+    f:close()
+
+    logger:I("generate cmake file -- success")
 end
 
 function module:run()
