@@ -113,13 +113,9 @@ function module:gen()
     local cmake_file_path = filepath.join(self.cmake_output_dir,"CMakeLists.txt")
     logger:I("generate cmake file\n\t%s",cmake_file_path)
 
-    local f = assert(io.open(cmake_file_path,"w+"))
+    local codegen = class.new("lemoon.codegen")
 
-    f:write(class.new("lemoon.tpl","cmake"):gen({
-        name = filepath.base(task.Owner.Name);
-    }))
-
-    f:close()
+    codegen.Writer = class.new("lemoon.codegen.file",cmake_file_path)
 
     logger:I("generate cmake file -- success")
 end
