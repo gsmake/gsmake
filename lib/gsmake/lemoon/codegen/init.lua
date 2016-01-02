@@ -1,18 +1,18 @@
 local class     = require "lemoon.class"
-local logger    = class.new("lemoon.log","lemoon")
-
 local module    = {}
--- create new codegen by template text
-function module.ctor (tpl)
+
+function module.ctor ()
     return {
-        tpl         = tpl;
-        Writer      = class.new("lemoon.codegen.memory");
+        templates = {};
     }
 end
+--
+function docompile (args)
 
--- render new text codes by provide env
-function module:render (env)
+end
 
+function module:compile (name,tpl)
+    self.templates[name] = class.new("lemoon.codegen.render",name,tpl)
 end
 
 return module

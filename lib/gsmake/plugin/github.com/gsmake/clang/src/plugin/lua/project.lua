@@ -27,6 +27,7 @@ function module.ctor(lake,name,config)
         CMAKE_HEADER_FILES          = assert(config.CMAKE_HEADER_FILES);
         CMAKE_SOURCE_FILES          = assert(config.CMAKE_SOURCE_FILES);
         CMAKE_SKIP_DIRS             = assert(config.CMAKE_SKIP_DIRS);
+        Type                        = assert(config.Type);
         Dir                         = assert(config.Dir);
         Deps                        = config.Dependencies or {};
         ConfigFiles                 = {};

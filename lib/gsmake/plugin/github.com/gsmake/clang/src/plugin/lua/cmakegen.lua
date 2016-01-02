@@ -75,11 +75,12 @@ function module:create_projects(name,config)
     end
 
     local project = class.new("project",lake,name,{
-        CMAKE_OUTPUT_DIR            = self.cmake_output_dir;
+        CMAKE_OUTPUT_DIR            = filepath.join(self.cmake_output_dir,name,module_src);
         CMAKE_CONFIG_FILE_NAME      = module_cmakeconfig;
         CMAKE_HEADER_FILES          = module_header_files;
         CMAKE_SOURCE_FILES          = module_source_files;
         CMAKE_SKIP_DIRS             = module_skip_dirs;
+        Type                        = module_type;
         Dir                         = filepath.join(self.task.Owner.Path,name,module_src);
         Dependencies                = module_dependencies;
     })
@@ -88,11 +89,12 @@ function module:create_projects(name,config)
 
     if module_type ~= "exe" then
         local test_project = class.new("project",lake,name .. "-test",{
-            CMAKE_OUTPUT_DIR            = self.cmake_output_dir;
+            CMAKE_OUTPUT_DIR            = filepath.join(self.cmake_output_dir,name,module_test);
             CMAKE_CONFIG_FILE_NAME      = module_cmakeconfig;
             CMAKE_HEADER_FILES          = module_header_files;
             CMAKE_SOURCE_FILES          = module_source_files;
             CMAKE_SKIP_DIRS             = module_skip_dirs;
+            Type                        = "exe";
             Dir                         = filepath.join(self.task.Owner.Path,name,module_test);
             Dependencies                = config["test_dependencies"];
         })
@@ -115,7 +117,7 @@ function module:gen()
 
     local codegen = class.new("lemoon.codegen")
 
-    codegen.Writer = class.new("lemoon.codegen.file",cmake_file_path)
+    codegen:compile("cmake",require("cmake"))
 
     logger:I("generate cmake file -- success")
 end
