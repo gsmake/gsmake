@@ -22,7 +22,6 @@ function module.ctor(lake,name,config)
     local obj = {
         lake                        = lake;
         Name                        = name;
-        CMAKE_OUTPUT_DIR            = assert(config.CMAKE_OUTPUT_DIR);
         CMAKE_CONFIG_FILE_NAME      = assert(config.CMAKE_CONFIG_FILE_NAME);
         CMAKE_HEADER_FILES          = assert(config.CMAKE_HEADER_FILES);
         CMAKE_SOURCE_FILES          = assert(config.CMAKE_SOURCE_FILES);
@@ -45,18 +44,21 @@ function module.ctor(lake,name,config)
     end
 
     fs.match(obj.Dir,obj.CMAKE_CONFIG_FILE_NAME,obj.CMAKE_SKIP_DIRS,function(path)
-        table.insert(obj.ConfigFiles,filepath.clean(path))
+        path = filepath.toslash(filepath.clean(path))
+        table.insert(obj.ConfigFiles,path)
     end)
 
     for _,pattern in ipairs(obj.CMAKE_HEADER_FILES) do
         fs.match(obj.Dir,pattern,obj.CMAKE_SKIP_DIRS,function(path)
-            table.insert(obj.HeaderFiles,filepath.clean(path))
+            path = filepath.toslash(filepath.clean(path))
+            table.insert(obj.HeaderFiles,path)
         end)
     end
 
     for _,pattern in ipairs(obj.CMAKE_SOURCE_FILES) do
         fs.match(obj.Dir,pattern,obj.CMAKE_SKIP_DIRS,function(path)
-            table.insert(obj.SrcFiles,filepath.clean(path))
+            path = filepath.toslash(filepath.clean(path))
+            table.insert(obj.SrcFiles,path)
         end)
     end
 

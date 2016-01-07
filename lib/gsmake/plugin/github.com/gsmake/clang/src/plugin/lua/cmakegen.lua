@@ -75,7 +75,6 @@ function module:create_projects(name,config)
     end
 
     local project = class.new("project",lake,name,{
-        CMAKE_OUTPUT_DIR            = filepath.join(self.cmake_output_dir,name,module_src);
         CMAKE_CONFIG_FILE_NAME      = module_cmakeconfig;
         CMAKE_HEADER_FILES          = module_header_files;
         CMAKE_SOURCE_FILES          = module_source_files;
@@ -89,7 +88,6 @@ function module:create_projects(name,config)
 
     if module_type ~= "exe" then
         local test_project = class.new("project",lake,name .. "-test",{
-            CMAKE_OUTPUT_DIR            = filepath.join(self.cmake_output_dir,name,module_test);
             CMAKE_CONFIG_FILE_NAME      = module_cmakeconfig;
             CMAKE_HEADER_FILES          = module_header_files;
             CMAKE_SOURCE_FILES          = module_source_files;
@@ -112,12 +110,62 @@ function module:gen()
         fs.mkdir(self.cmake_output_dir,true)
     end
 
-    local cmake_file_path = filepath.join(self.cmake_output_dir,"CMakeLists.txt")
-    logger:I("generate cmake file\n\t%s",cmake_file_path)
-
     local codegen = class.new("lemoon.codegen")
 
-    codegen:compile("cmake",require("cmake"))
+    local template_dir = filepath.join(task.Package.Path,"template")
+
+    fs.list(template_dir,function (entry)
+        if entry == "." or entry == ".." then
+            return
+        end
+
+        local path = filepath.join(template_dir,entry)
+
+        if fs.isdir(path) then
+            return
+        end
+
+        local f =io.open(path)
+
+        codegen:compile(filepath.base(path),f:read("a"))
+    end)
+
+
+
+    local cmake_root_dir = filepath.join(self.cmake_output_dir,task.Owner.Name)
+
+    if not fs.exists(cmake_root_dir) then
+        fs.mkdir(cmake_root_dir,true)
+    end
+
+    local cmake_root_file = filepath.join(cmake_root_dir,"CMakeLists.txt")
+
+    codegen:render(cmake_root_file,"project.tpl",{
+        name            = filepath.base(task.Owner.Name);
+        projects        = self.projects;
+        test_projects   = self.test_projects;
+    })
+
+    for _,project in pairs(self.projects) do
+        local cmake_project_dir = filepath.join(cmake_root_dir,project.Name)
+        if not fs.exists(cmake_project_dir) then
+            fs.mkdir(cmake_project_dir,true)
+        end
+        local cmake_project_file = filepath.join(cmake_project_dir,"CMakeLists.txt")
+        logger:I(cmake_project_file)
+        codegen:render(cmake_project_file,"module.tpl",project)
+    end
+
+
+    for _,project in pairs(self.test_projects) do
+        local cmake_project_dir = filepath.join(cmake_root_dir,project.Name)
+        if not fs.exists(cmake_project_dir) then
+            fs.mkdir(cmake_project_dir,true)
+        end
+        local cmake_project_file = filepath.join(cmake_project_dir,"CMakeLists.txt")
+        logger:I(cmake_project_file)
+        codegen:render(cmake_project_file,"module.tpl",project)
+    end
 
     logger:I("generate cmake file -- success")
 end
