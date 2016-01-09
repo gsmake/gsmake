@@ -1,7 +1,7 @@
 local class     = require "lemoon.class"
 
 task.cmakegen = function(self)
-    class.new("cmakegen",self):run()
+    class.new("cmake",self):run()
 end
 task.cmakegen.Desc = "generate cmake build files"
 

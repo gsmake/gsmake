@@ -6,60 +6,42 @@ local logger    = class.new("lemoon.log","lake")
 
 local module = {}
 
-local function printArray(array)
-    local s = "{ "
-    for _,v in ipairs(array) do
-        s = s .. '"' .. tostring(v) ..'"'
+function module.ctor (obj)
+    obj.ConfigFiles                 = {};
+    obj.SrcFiles                    = {};
+    obj.HeaderFiles                 = {};
+    obj.Linked                      = {};
+    obj.External                    = false;
+
+    for i,pattern in pairs(obj.header_files) do
+        obj.header_files[i] = pattern:gsub("(%*%.)","[^.]*%%.")
     end
 
-    s = s .. " }"
-
-    return s
-end
-
-function module.ctor(lake,name,config)
-
-    local obj = {
-        lake                        = lake;
-        Name                        = name;
-        CMAKE_CONFIG_FILE_NAME      = assert(config.CMAKE_CONFIG_FILE_NAME);
-        CMAKE_HEADER_FILES          = assert(config.CMAKE_HEADER_FILES);
-        CMAKE_SOURCE_FILES          = assert(config.CMAKE_SOURCE_FILES);
-        CMAKE_SKIP_DIRS             = assert(config.CMAKE_SKIP_DIRS);
-        Type                        = assert(config.Type);
-        Dir                         = assert(config.Dir);
-        Deps                        = config.Dependencies or {};
-        ConfigFiles                 = {};
-        SrcFiles                    = {};
-        HeaderFiles                 = {};
-        Linked                      = {};
-    }
-
-    for i,pattern in pairs(obj.CMAKE_HEADER_FILES) do
-        obj.CMAKE_HEADER_FILES[i] = pattern:gsub("(%*%.)","[^.]*%%.")
+    for i,pattern in pairs(obj.source_files) do
+        obj.source_files[i] = pattern:gsub("(%*%.)","[^.]*%%.")
     end
 
-    for i,pattern in pairs(obj.CMAKE_SOURCE_FILES) do
-        obj.CMAKE_SOURCE_FILES[i] = pattern:gsub("(%*%.)","[^.]*%%.")
-    end
+    for _,dir in ipairs(obj.SrcDirs) do
 
-    fs.match(obj.Dir,obj.CMAKE_CONFIG_FILE_NAME,obj.CMAKE_SKIP_DIRS,function(path)
-        path = filepath.toslash(filepath.clean(path))
-        table.insert(obj.ConfigFiles,path)
-    end)
-
-    for _,pattern in ipairs(obj.CMAKE_HEADER_FILES) do
-        fs.match(obj.Dir,pattern,obj.CMAKE_SKIP_DIRS,function(path)
+        fs.match(dir,obj.config,obj.skips,function(path)
             path = filepath.toslash(filepath.clean(path))
-            table.insert(obj.HeaderFiles,path)
+            table.insert(obj.ConfigFiles,path)
         end)
-    end
 
-    for _,pattern in ipairs(obj.CMAKE_SOURCE_FILES) do
-        fs.match(obj.Dir,pattern,obj.CMAKE_SKIP_DIRS,function(path)
-            path = filepath.toslash(filepath.clean(path))
-            table.insert(obj.SrcFiles,path)
-        end)
+        for _,pattern in ipairs(obj.header_files) do
+            fs.match(dir,pattern,obj.skips,function(path)
+                path = filepath.toslash(filepath.clean(path))
+                table.insert(obj.HeaderFiles,path)
+            end)
+        end
+
+        for _,pattern in ipairs(obj.source_files) do
+
+            fs.match(dir,pattern,obj.source_files,function(path)
+                path = filepath.toslash(filepath.clean(path))
+                table.insert(obj.SrcFiles,path)
+            end)
+        end
     end
 
     return obj
@@ -108,7 +90,7 @@ function module:link(projects)
             table.insert(self.Linked,proj)
         end
     end
-
 end
+
 
 return module

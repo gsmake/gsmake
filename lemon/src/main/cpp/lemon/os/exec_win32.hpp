@@ -69,11 +69,11 @@ namespace lemon {
 
 				LPVOID lpEnvironment = NULL;
 
-				STARTUPINFO si;
+				STARTUPINFOW si;
 
 				ZeroMemory(&_processInfo, sizeof(_processInfo));
 
-				ZeroMemory(&si, sizeof(STARTUPINFO));
+				ZeroMemory(&si, sizeof(STARTUPINFOW));
 
 				si.cb = sizeof(STARTUPINFO);
 				si.hStdError = stderrHandler;
