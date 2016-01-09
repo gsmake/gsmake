@@ -32,7 +32,7 @@ function module.ctor(lake,name,config)
         ConfigFiles                 = {};
         SrcFiles                    = {};
         HeaderFiles                 = {};
-        linked                      = {};
+        Linked                      = {};
     }
 
     for i,pattern in pairs(obj.CMAKE_HEADER_FILES) do
@@ -105,7 +105,7 @@ function module:link(projects)
 
             logger:D("found project [%s] dependency %s",self.Name,dep)
             -- insert proj into linked table
-            table.insert(self.linked,proj)
+            table.insert(self.Linked,proj)
         end
     end
 
