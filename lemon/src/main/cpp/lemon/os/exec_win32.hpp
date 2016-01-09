@@ -75,7 +75,7 @@ namespace lemon {
 
 				ZeroMemory(&si, sizeof(STARTUPINFOW));
 
-				si.cb = sizeof(STARTUPINFO);
+				si.cb = sizeof(STARTUPINFOW);
 				si.hStdError = stderrHandler;
 				si.hStdOutput = stdoutHandler;
 				si.hStdInput = stdinHandler;

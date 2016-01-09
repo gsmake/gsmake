@@ -207,6 +207,20 @@ function module:run ()
 
     -- generate cmake files
     self:gen_cmake_files()
+
+    local cmake_build_dir = filepath.join(self.cmakedir,self.owner.Name,".build")
+
+    if not fs.exists(cmake_build_dir) then
+        fs.mkdir(cmake_build_dir,true)
+    end
+
+    local exec = sys.exec(self.cmake)
+    exec:dir(cmake_build_dir)
+    exec:start("..")
+    exec:wait()
+
+    exec:start("--build",".")
+    exec:wait()
 end
 
 return module

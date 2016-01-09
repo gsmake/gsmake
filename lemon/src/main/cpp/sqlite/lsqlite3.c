@@ -26,6 +26,10 @@
 * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                *
 ************************************************************************/
 
+#ifdef WIN32
+#define  _CRT_SECURE_NO_WARNINGS
+#endif //WIN32
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -354,7 +358,7 @@ static int dbvm_get_value(lua_State *L) {
 
 static int dbvm_get_name(lua_State *L) {
     sdb_vm *svm = lsqlite_checkvm(L, 1);
-    int index = luaL_checknumber(L, 2);
+    int index = (int)luaL_checknumber(L, 2);
     dbvm_check_index(L, svm, index);
     lua_pushstring(L, sqlite3_column_name(svm->vm, index));
     return 1;
@@ -362,7 +366,7 @@ static int dbvm_get_name(lua_State *L) {
 
 static int dbvm_get_type(lua_State *L) {
     sdb_vm *svm = lsqlite_checkvm(L, 1);
-    int index = luaL_checknumber(L, 2);
+    int index = (int)luaL_checknumber(L, 2);
     dbvm_check_index(L, svm, index);
     lua_pushstring(L, sqlite3_column_decltype(svm->vm, index));
     return 1;
@@ -515,7 +519,7 @@ static int dbvm_bind_parameter_count(lua_State *L) {
 
 static int dbvm_bind_parameter_name(lua_State *L) {
     sdb_vm *svm = lsqlite_checkvm(L, 1);
-    int index = luaL_checknumber(L, 2);
+    int index = (int)luaL_checknumber(L, 2);
     dbvm_check_bind_index(L, svm, index);
     lua_pushstring(L, sqlite3_bind_parameter_name(svm->vm, index));
     return 1;
@@ -1654,11 +1658,11 @@ static int db_exec_callback(void* user, int columns, char **data, char **names) 
 
 #if LUA_VERSION_NUM > 502
         if (lua_isinteger(L, -1))
-            result = lua_tointeger(L, -1);
+            result = (int)lua_tointeger(L, -1);
         else
 #endif
         if (lua_isnumber(L, -1))
-            result = lua_tonumber(L, -1);
+            result = (int)lua_tonumber(L, -1);
     }
 
     lua_settop(L, top);

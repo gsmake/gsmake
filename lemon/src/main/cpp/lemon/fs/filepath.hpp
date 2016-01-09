@@ -434,7 +434,7 @@ namespace lemon{ namespace fs{
             {
                 if(is_separator(source[0]) && is_separator(source[1]) && !is_separator(source[2]) && source[2] != char_type('.'))
                 {
-                    for(int i = 4; i < source.length(); i ++)
+                    for(size_t i = 4; i < source.length(); i ++)
                     {
                         if (is_separator(source[i]))
                         {

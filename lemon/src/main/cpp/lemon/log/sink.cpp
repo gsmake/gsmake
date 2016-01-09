@@ -63,8 +63,13 @@ namespace lemon{ namespace log{
 #endif 
 
 		std::time_t ts = std::chrono::system_clock::to_time_t(msg.TS);
-
-		auto tm = std::localtime(&ts);
+#ifdef WIN32
+		tm t;
+		localtime_s(&t,&ts);
+		tm *tm = &t;
+#else
+		auto tm = localtime(&ts);
+#endif 
 
 
 		std::cout << tm->tm_year + 1900 << "-" << tm->tm_mon << "-" << tm->tm_mday << " "

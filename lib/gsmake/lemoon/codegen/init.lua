@@ -24,9 +24,13 @@ function module:render (writer,name,env)
 
     if type(writer) == "string" then
         writer = class.new("lemoon.codegen.file",writer)
+        pcall(render.eval,render,writer,env)
+        writer:final()
+    else
+        render:eval(writer,env)
     end
 
-    render:eval(writer,env)
+
 end
 
 return module

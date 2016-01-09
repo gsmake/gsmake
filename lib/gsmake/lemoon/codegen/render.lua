@@ -56,7 +56,6 @@ end
 
 function module:eval(writer,env)
     env.__codegen_render = function(name,env)
-        logger:I("include ................")
         self.codegen:render(writer,name,env)
     end
     env.__codegen_writer = writer
@@ -64,8 +63,6 @@ function module:eval(writer,env)
     for k,v in pairs(_G) do
         env[k] = v
     end
-
-    logger:I("render script(%s) :\n%s",self.Name,self.render)
 
     local func,err = load(self.render,self.Name,"bt",env)
 
