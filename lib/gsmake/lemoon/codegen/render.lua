@@ -55,8 +55,8 @@ function module.ctor (codegen,name,tpl)
 end
 
 function module:eval(writer,env)
-    env.__codegen_render = function(name,env)
-        self.codegen:render(writer,name,env)
+    env.__codegen_render = function(name,render_env)
+        self.codegen:render(writer,name,render_env)
     end
     env.__codegen_writer = writer
 

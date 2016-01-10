@@ -8,6 +8,7 @@ end
 
 function module:write (args)
     self.file:write(args)
+    self.file:flush()
 end
 
 function module:final ()

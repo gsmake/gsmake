@@ -10,12 +10,18 @@ namespace lemon{ namespace os{
 	 * get the lemon host name
 	 */
 	enum class host_t {
-		Unknown,Win64,Win32,Linux,Solaris,HPUX,AIX,iOS_Simulator,iOS,OSX,OSX_Unknown,Android
+		Unknown,Windows,Linux,Solaris,HPUX,AIX,iOS_Simulator,iOS,OSX,OSX_Unknown,Android
+	};
+
+	enum class arch_t {
+		Alpha,X86,AMD64,ARM,ARM64, HP_PA, MIPS, PowerPC,SPARC
 	};
 
 	//
 	// get host name
 	host_t hostname();
+
+	arch_t arch();
 
 	//
 	// get env by name

@@ -19,11 +19,7 @@ namespace lemon { namespace os {
     {
 
     #ifdef WIN32
-        #ifdef _WIN64
-                return host_t::Win64;
-        #else
-                return host_t::Win32;
-        #endif
+		return host_t::Windows;
     #elif defined(__linux)
         #ifdef __android
             return host_t::Android;
@@ -48,6 +44,29 @@ namespace lemon { namespace os {
     #endif
     #endif //WIN32
     }
+
+	arch_t arch()
+	{
+#if defined(__alpha__) || defined(_M_ALPHA) || defined(__alpha)
+		return arch_t::Alpha;
+#elif defined(__amd64__) || defined(__amd64) || defined(_M_X64)
+		return arch_t::AMD64;
+#elif defined(__arm__) || defined(_ARM) || defined(_M_ARM) || defined(_M_ARMT) || defined(__arm)
+		return arch_t::ARM;
+#elif defined(__aarch64__) || defined(__arm64__)
+		return arch_t::ARM64;
+#elif defined(__hppa__) || defined(__HPPA__)
+		return arch_t::HP_PA;
+#elif defined(__i386__) || defined(__i386) || defined(__i386) || defined(_M_IX86) || defined(_X86_)
+		return arch_t::X86;
+#elif defined(__mips__) || defined(__mips)
+		return arch_t::MIPS;
+#elif defined(__powerpc) || defined(_M_PPC) || defined(_ARCH_PPC64) || defined(_ARCH_PPC)
+		return arch_t::PowerPC;
+#elif defined(__sparc__)
+		return arch_t::SPARC;
+#endif
+	}
 
 
 

@@ -1,16 +1,13 @@
 local class     = require "lemoon.class"
 local module    = {}
-local logger    = class.new("lemoon.log","lemoon.codegen")
+
 
 function module.ctor ()
     return {
         templates = {};
     }
 end
---
-function docompile (args)
 
-end
 
 function module:compile (name,tpl)
     self.templates[name] = class.new("lemoon.codegen.render",self,name,tpl)
@@ -24,8 +21,12 @@ function module:render (writer,name,env)
 
     if type(writer) == "string" then
         writer = class.new("lemoon.codegen.file",writer)
-        pcall(render.eval,render,writer,env)
+        local ok ,err = pcall(render.eval,render,writer,env)
         writer:final()
+
+        if not ok then
+            error(err)
+        end
     else
         render:eval(writer,env)
     end

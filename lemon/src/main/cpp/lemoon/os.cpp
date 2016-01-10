@@ -23,11 +23,8 @@ namespace lemoon { namespace os{
         case  host_t::Unknown:
             lua_pushstring(L,"Unknown");
             break;
-        case  host_t::Win64:
-            lua_pushstring(L,"Win64");
-            break;
-        case  host_t::Win32:
-            lua_pushstring(L,"Win32");
+        case  host_t::Windows:
+            lua_pushstring(L,"Windows");
             break;
         case  host_t::Linux:
             lua_pushstring(L,"Linux");
@@ -58,6 +55,49 @@ namespace lemoon { namespace os{
 
         return 1;
     }
+
+	int arch(lua_State *L)
+	{
+		auto name = lemon::os::arch();
+
+		using arch_t = lemon::os::arch_t;
+
+		switch (name)
+		{
+		case arch_t::Alpha:
+			lua_pushstring(L, "Alpha");
+			break;
+		case arch_t::AMD64:
+			lua_pushstring(L, "AMD64");
+			break;
+		case arch_t::ARM:
+			lua_pushstring(L, "ARM");
+			break;
+		case arch_t::ARM64:
+			lua_pushstring(L, "ARM64");
+			break;
+		case arch_t::HP_PA:
+			lua_pushstring(L, "HP_PA");
+			break;
+		case arch_t::MIPS:
+			lua_pushstring(L, "MIPS");
+			break;
+		case arch_t::PowerPC:
+			lua_pushstring(L, "PowerPC");
+			break;
+		case arch_t::SPARC:
+			lua_pushstring(L, "SPARC");
+			break;
+		case arch_t::X86:
+			lua_pushstring(L, "X86");
+			break;
+		default:
+			lua_pushstring(L, "Unknown");
+			break;
+		}
+
+		return 1;
+	}
 
     int lua_exec_start(lua_State *L)
     {
@@ -183,10 +223,11 @@ namespace lemoon { namespace os{
 
 
     static luaL_Reg os[] = {
-        {"lookup",lookup},
-        {"exec",lua_exec},
-        {"host",hostname},
-        {"tmpdir",tmpdir},
+		{ "lookup",lookup },
+		{ "exec",lua_exec },
+		{ "host",hostname },
+		{ "arch",arch },
+		{ "tmpdir",tmpdir },
         {NULL, NULL}
     };
 }}

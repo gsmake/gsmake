@@ -9,26 +9,31 @@ local module = {}
 -- create new cmake plugin executor
 function module.ctor (task)
     logger:I("check the cmake command line tools ...")
-    local ok, path = sys.lookup("cmake")
+    local ok, cmake_path = sys.lookup("cmake")
 
     if not ok then
         error("check the cmake command line tools -- failed, not found")
     end
 
-    logger:D("cmake tool path :%s",path)
-
-    logger:I("check the cmake command line tools -- success")
+    logger:D("cmake tool path :%s",cmake_path)
 
     local obj = {
-        cmake           = path;             -- the cmake execute full path
+        cmake_path      = cmake_path;       -- cmake path
         task            = task;             -- cmake executor bind task
         owner           = task.Owner;       -- cmake executor owner package
         package         = task.Package;     -- cmake executor src package
         projects        = {};               -- clang projects
         tests           = {};               -- clang test projects
-        cmakedir        = filepath.join(task.Owner.Lake.Config.GSMAKE_INSTALL_PATH,"cmake");
-        outputdir       = filepath.toslash(task.Owner.Lake.Config.GSMAKE_INSTALL_PATH);
     }
+
+    local lake = task.Owner.Lake
+
+    obj.cmake_root_dir = filepath.join(
+        lake.Config.GSMAKE_INSTALL_PATH,"cmake",
+        obj.owner.Name,
+        lake.Config.GSMAKE_TARGET_HOST .. "-" .. lake.Config.GSMAKE_TARGET_ARCH)
+
+    obj.outputdir = filepath.toslash(filepath.join(obj.cmake_root_dir,".install"))
 
     return obj
 end
@@ -79,7 +84,7 @@ function module:loadproject (name, config)
         SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,name,"src/main"));
         SrcDirs                     = srcDirs;
         Deps                        = config["dependencies"] or {};
-        lake                        = lake;
+        Lake                        = lake;
         config                      = config["config"];
         header_files                = config["header_files"];
         source_files                = config["source_files"];
@@ -95,22 +100,22 @@ function module:loadproject (name, config)
            table.insert(testDirs,filepath.toslash(filepath.join(self.owner.Path,name,dir)));
        end
 
-       local project = class.new("project",{
+       local test = class.new("project",{
            Name                        = name .. "-test";
            Type                        = "exe"; -- the test project's type is execute program
            OutputDir                   = self.outputdir;
            SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,name,"src/test"));
            SrcDirs                     = testDirs;
            Deps                        = config["test_dependencies"] or {};
-           lake                        = lake;
+           Lake                        = lake;
            config                      = config["config"];
            header_files                = config["header_files"];
            source_files                = config["source_files"];
            skips                       = config["skips"];
       })
 
-      if #project.SrcFiles then
-          self.tests[name] = project
+      if #test.SrcFiles then
+          self.tests[name] = test
       end
    end
 
@@ -120,8 +125,8 @@ function module:gen_cmake_files ()
 
     local task = self.task
 
-    if not fs.exists(self.cmakedir) then
-        fs.mkdir(self.cmakedir,true)
+    if not fs.exists(self.cmake_root_dir) then
+        fs.mkdir(self.cmake_root_dir,true)
     end
 
     local codegen = class.new("lemoon.codegen")
@@ -144,22 +149,17 @@ function module:gen_cmake_files ()
         codegen:compile(filepath.base(path),f:read("a"))
     end)
 
-    local cmake_root_dir = filepath.join(self.cmakedir,self.owner.Name)
-
-    if not fs.exists(cmake_root_dir) then
-        fs.mkdir(cmake_root_dir,true)
-    end
-
-    local cmake_root_file = filepath.join(cmake_root_dir,"CMakeLists.txt")
+    local cmake_root_file = filepath.join(self.cmake_root_dir,"CMakeLists.txt")
 
     codegen:render(cmake_root_file,"project.tpl",{
         name            = filepath.base(task.Owner.Name);
         projects        = self.projects;
         tests           = self.tests;
+        target_host     = self.task.Lake.Config.GSMAKE_TARGET_HOST;
     })
 
     for _,project in pairs(self.projects) do
-        local cmake_project_dir = filepath.join(cmake_root_dir,project.Name)
+        local cmake_project_dir = filepath.join(self.cmake_root_dir,project.Name)
         if not fs.exists(cmake_project_dir) then
             fs.mkdir(cmake_project_dir,true)
         end
@@ -170,7 +170,7 @@ function module:gen_cmake_files ()
 
 
     for _,project in pairs(self.tests) do
-        local cmake_project_dir = filepath.join(cmake_root_dir,project.Name)
+        local cmake_project_dir = filepath.join(self.cmake_root_dir,project.Name)
         if not fs.exists(cmake_project_dir) then
             fs.mkdir(cmake_project_dir,true)
         end
@@ -182,7 +182,7 @@ function module:gen_cmake_files ()
     logger:I("generate cmake file -- success")
 end
 
-function module:run ()
+function module:cmakegen ()
     local clang = self.task.Owner.Properties.clang
 
     if clang == nil then
@@ -201,26 +201,39 @@ function module:run ()
 
     for name,project in pairs(self.tests) do
         project:link(self.projects)
-        logger:I("%s",self.projects[name])
         table.insert(project.Linked,self.projects[name])
     end
 
     -- generate cmake files
     self:gen_cmake_files()
+end
 
-    local cmake_build_dir = filepath.join(self.cmakedir,self.owner.Name,".build")
-
+function module:compile ()
+    local cmake_root_dir = self.cmake_root_dir
+    local cmake_build_dir = filepath.join(cmake_root_dir,".build")
     if not fs.exists(cmake_build_dir) then
         fs.mkdir(cmake_build_dir,true)
     end
 
-    local exec = sys.exec(self.cmake)
+    local exec = sys.exec(self.cmake_path)
     exec:dir(cmake_build_dir)
-    exec:start("..")
+
+    local config = self.owner.Lake.Config
+    if config.GSMAKE_TARGET_HOST == "Windows" and config.GSMAKE_TARGET_ARCH == "AMD64" then
+        exec:start("-A","x64","..")
+    else
+        exec:start("..")
+    end
+
     exec:wait()
+
 
     exec:start("--build",".")
     exec:wait()
+end
+
+function module:install ()
+    
 end
 
 return module
