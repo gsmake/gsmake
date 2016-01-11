@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+project(@{{name}})
 
 @{{ if target_host == "Windows" then }}
 foreach(flag_var CMAKE_C_FLAGS
@@ -13,8 +14,6 @@ foreach(flag_var CMAKE_C_FLAGS
     string(REGEX REPLACE "/W3" "/W4" ${flag_var} "${${flag_var}}")
 endforeach(flag_var)
 @{{ end }}
-
-project(@{{name}})
 
 
 @{{ for _,project in pairs(projects or {}) do }}

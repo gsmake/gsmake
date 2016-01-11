@@ -105,7 +105,11 @@ namespace lemon{ namespace fs{
             }
         }
 
-        create_directory(path,err);
+		if(!exists(path)) 
+		{
+			create_directory(path, err);
+		}
+      
     }
 
     inline void create_directories(const filepath &path)

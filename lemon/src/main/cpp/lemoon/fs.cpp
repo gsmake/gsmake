@@ -77,7 +77,8 @@ namespace lemoon{namespace{
 
         if(lua_type(L,2) == LUA_TBOOLEAN && lua_toboolean(L,2))
         {
-            lemon::fs::create_directories(luaL_checkstring(L,1),err);
+			auto path = luaL_checkstring(L, 1);
+            lemon::fs::create_directories(path,err);
 
             if(err)
             {

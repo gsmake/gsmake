@@ -12,7 +12,10 @@ function module:write (args)
 end
 
 function module:final ()
-    self.file:close()
+    if self.file  ~= nil then
+        self.file:close()
+        self.file = nil
+    end
 end
 
 return module

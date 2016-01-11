@@ -44,31 +44,22 @@ task.install = function(self,prefix)
 
     local targetPath  =  filepath.join(prefix,"gsmake",name)
 
-    -- remove preversion plugin
-    if fs.exists(targetPath) then
-        fs.rm(targetPath,true)
-    end
-
     for _,dir in pairs(pluginSrcDirs) do
         local srcDir = filepath.join(packagePath,dir)
 
         if fs.exists(srcDir) then
-            fs.copy_dir_and_children(srcDir,targetPath,skipDirs)
+            fs.copy_dir(srcDir,targetPath,"fm")
         end
     end
 
     -- remove preversion lua library
     targetPath = filepath.join(prefix,"lib")
 
-    if fs.exists(targetPath) then
-        fs.rm(targetPath,true)
-    end
-
     for _,dir in pairs(srcDirs) do
         local srcDir = filepath.join(packagePath,dir)
 
         if fs.exists(srcDir) then
-            fs.copy_dir_and_children(srcDir,targetPath,skipDirs)
+            fs.copy_dir(srcDir,targetPath,"fm")
         end
     end
 end

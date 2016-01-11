@@ -30,10 +30,11 @@ function module.ctor (task)
 
     obj.cmake_root_dir = filepath.join(
         lake.Config.GSMAKE_INSTALL_PATH,"cmake",
-        obj.owner.Name,
         lake.Config.GSMAKE_TARGET_HOST .. "-" .. lake.Config.GSMAKE_TARGET_ARCH)
 
-    obj.outputdir = filepath.toslash(filepath.join(obj.cmake_root_dir,".install"))
+    obj.outputdir = filepath.toslash(filepath.join(
+        lake.Config.GSMAKE_INSTALL_PATH,"clang",
+        lake.Config.GSMAKE_TARGET_HOST .. "-" .. lake.Config.GSMAKE_TARGET_ARCH))
 
     return obj
 end
@@ -232,8 +233,36 @@ function module:compile ()
     exec:wait()
 end
 
-function module:install ()
-    
+function module:install (install_path)
+
+    install_path = fs.abs(install_path)
+
+    for _,project in pairs(self.projects) do
+        for _,header in ipairs(project.HeaderFiles) do
+            local target = header
+            for _,srcDir in ipairs(project.SrcDirs) do
+                target = target:gsub(srcDir,"")
+            end
+
+            target = filepath.join(install_path,"include",target)
+
+            local dir = filepath.dir(target)
+
+            if not fs.exists(dir) then
+                fs.mkdir(dir,true)
+            end
+
+            fs.copy_file(header,target)
+        end
+    end
+
+    fs.list(self.outputdir,function(entry)
+        if entry == "." or entry == ".." then
+            return
+        end
+        fs.copy_dir(filepath.join(self.outputdir,entry),filepath.join(install_path,entry),"fm")
+    end)
+
 end
 
 return module

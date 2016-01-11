@@ -18,11 +18,7 @@ task.compile.Desc = "clang package compile task"
 task.compile.Prev = "cmakegen"
 
 task.install = function(self,install_path)
-    -- local cmake_build_dir = get_cmake_build_dir(self)
-    -- local exec = sys.exec(cmake_path)
-    -- exec:dir(cmake_build_dir)
-    -- exec:start("--build",".")
-    -- exec:wait()
+    cmake:install(install_path)
 end
 task.install.Desc = "clang package install package"
 task.install.Prev = "compile"

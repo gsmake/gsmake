@@ -3,6 +3,14 @@ local logger    = class.new("lemoon.log","lemoon")
 
 local module = require "lemoonc.fs"
 
+local has_force_flag = function(flags)
+    return string.match(flags or "","f") ~= nil
+end
+
+local has_merge_flag = function(flags)
+    return string.match(flags or "","m") ~= nil
+end
+
 function module.copy_file(source,target)
 
     local srcFile = io.open(source, "r")
@@ -16,35 +24,26 @@ function module.copy_file(source,target)
     targetFile:close()
 end
 
-function module.copy_dir_and_children(from,to,skipdirs)
-    assert(module.isdir(from),"source must be dir")
-
-    if module.exists(to) then
-        module.rm(to,true)
+-- copy the directory to target path
+function module.copy_dir(from,to,flags)
+    if module.exists(to) and not has_merge_flag(flags) then
+        error("copy directory error: already exists\n\tfrom: %s\n\tto: %s",from,to)
     end
 
-    local ok,err = pcall(module.mkdir,to,true)
-
-    if not ok then
-        logger:E("create dir :%s -- failed",to)
-        error(debug.traceback() .. "\n\t" .. err)
+    if not module.exists(to) then
+        module.mkdir(to,true)
     end
-
 
     module.list(from,function(entry)
         if entry == "." or entry == ".." then return end
 
-        for _,v in pairs(skipdirs or {}) do
-            if v == entry then return end
-        end
+        local src = from .. "/".. entry
+        local obj = to .. "/".. entry
 
-        local source = from .. "/".. entry
-        local target = to .. "/".. entry
-
-        if module.isdir(source) then
-            module.copy_dir_and_children(source,target,skipdirs)
+        if module.isdir(src) then
+            module.copy_dir(src,obj,flags)
         else
-            module.copy_file(source,target)
+            module.copy_file(src,obj,flags)
         end
     end)
 end
