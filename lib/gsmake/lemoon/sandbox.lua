@@ -1,4 +1,4 @@
-local class     = require "lemoon.class"
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 
 local logger    = class.new("lemoon.log","lake")
@@ -9,7 +9,7 @@ local function loadScript(script,env)
     local closure,err = loadfile(script,"bt",env)
 
     if err ~= nil then
-        error(string.format("load plugin -- failed,%s",err))
+        throw("load plugin -- failed,%s",err)
     end
 
     return closure()

@@ -2,7 +2,7 @@ local class = require "lemoon.class"
 
 
 -- cached logger
-local logger = class.new("lemoon.log","lake")
+local logger = class.new("lemoon.log","gsmake")
 
 local module = {}
 

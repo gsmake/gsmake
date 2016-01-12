@@ -1,9 +1,10 @@
 local fs        = require "lemoon.fs"
 local sys       = require "lemoon.sys"
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
 
 local module = {}
 -- create new cmake plugin executor
@@ -12,7 +13,7 @@ function module.ctor (task)
     local ok, cmake_path = sys.lookup("cmake")
 
     if not ok then
-        error("check the cmake command line tools -- failed, not found")
+        throw("check the cmake command line tools -- failed, not found")
     end
 
     logger:D("cmake tool path :%s",cmake_path)
@@ -207,9 +208,7 @@ function module:cmakegen ()
 
     -- generate cmake files
     self:gen_cmake_files()
-end
 
-function module:compile ()
     local cmake_root_dir = self.cmake_root_dir
     local cmake_build_dir = filepath.join(cmake_root_dir,".build")
     if not fs.exists(cmake_build_dir) then
@@ -227,13 +226,24 @@ function module:compile ()
     end
 
     exec:wait()
+end
 
+function module:compile ()
+    local cmake_root_dir = self.cmake_root_dir
+    local cmake_build_dir = filepath.join(cmake_root_dir,".build")
+
+    local exec = sys.exec(self.cmake_path)
+    exec:dir(cmake_build_dir)
 
     exec:start("--build",".")
     exec:wait()
 end
 
 function module:install (install_path)
+
+    if install_path == nil or install_path == "" then
+        throw("expect install path arg")
+    end
 
     install_path = fs.abs(install_path)
 
@@ -252,7 +262,7 @@ function module:install (install_path)
                 fs.mkdir(dir,true)
             end
 
-            fs.copy_file(header,target,"fm")
+            fs.copy_file(header,target,fs.update_existing)
         end
     end
 
@@ -260,7 +270,7 @@ function module:install (install_path)
         if entry == "." or entry == ".." then
             return
         end
-        fs.copy_dir(filepath.join(self.outputdir,entry),filepath.join(install_path,entry),"fm")
+        fs.copy_dir(filepath.join(self.outputdir,entry),filepath.join(install_path,entry),fs.update_existing)
     end)
 
 end

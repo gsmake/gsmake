@@ -1,3 +1,4 @@
+#include <sstream>
 #include <lemon/log/sink.hpp>
 #include <lemon/log/factory.hpp>
 #include <lemon/log/logger.hpp>
@@ -34,7 +35,7 @@ namespace lemon{ namespace log{
 			{
 				for(auto s :_sinks)
 				{
-					s->write(msg);
+					s.second->write(msg);
 				}
 			}
 		}
@@ -49,7 +50,7 @@ namespace lemon{ namespace log{
 		{
 			for (auto s : _sinks)
 			{
-				s->write(msg);
+				s.second->write(msg);
 			}
 		}
 
@@ -96,19 +97,50 @@ namespace lemon{ namespace log{
 	}
 
 
-	void factory::add_sink(sink* s)
+	void factory::add_sink(std::unique_ptr<sink> s)
+	{
+		std::stringstream stream;
+
+		stream << (ptrdiff_t)s.get();
+
+		add_sink(stream.str(), std::move(s));
+	}
+
+	void factory::add_sink(const std::string & name, std::unique_ptr<sink> s)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 
-		_sinks.insert(s);
+		_sinks[name] = std::shared_ptr<sink>(s.release());
 	}
 
-	void factory::remove_sink(sink* s)
+	void factory::remove_sink(const std::string & name)
 	{
 		std::lock_guard<std::mutex> lock(_mutex);
 
-		_sinks.erase(s);
+		_sinks.erase(name);
 	}
+
+	void factory::remove_all_sinks()
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+
+		_sinks.clear();
+	}
+
+	std::shared_ptr<sink> factory::get_sink(const std::string & name) const
+	{
+		std::lock_guard<std::mutex> lock(_mutex);
+
+		auto iter = _sinks.find(name);
+
+		if (iter == _sinks.end())
+		{
+			return{};
+		}
+
+		return iter->second;
+	}
+
 	/**
 	* get or create new logger
 	*/

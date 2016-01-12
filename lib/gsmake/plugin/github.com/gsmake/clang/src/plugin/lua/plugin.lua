@@ -1,5 +1,5 @@
 local class     = require "lemoon.class"
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
 
 local cmake = nil
 

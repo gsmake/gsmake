@@ -11,7 +11,6 @@
 
 #include <lemon/fs/filepath.hpp>
 
-
 #ifdef WIN32
 #include <lemon/fs/dir_iterator_win32.hpp>
 #else
@@ -19,6 +18,12 @@
 #endif //WIN32
 
 namespace lemon{ namespace fs{
+
+	enum class directory_options {
+		none,
+		follow_directory_symlink,
+		skip_permission_denied
+	};
 	
 	class directory_iterator_impl;
 

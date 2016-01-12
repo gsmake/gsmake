@@ -1,3 +1,4 @@
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local module    = {}
 local logger    = class.new("lemoon.log","lemoon.codegen")
@@ -67,7 +68,7 @@ function module:eval(writer,env)
     local func,err = load(self.render,self.Name,"bt",env)
 
     if func == nil then
-        error(string.format("load %s error :%s",self.Name,err))
+        throw("load %s error :%s",self.Name,err)
     end
 
     func()

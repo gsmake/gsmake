@@ -84,7 +84,7 @@ namespace lemon { namespace os {
 
         std::vector<wchar_t> buff(length);
 
-        ::GetEnvironmentVariableW(namew.c_str(), &buff[0], buff.size());
+        ::GetEnvironmentVariableW(namew.c_str(), &buff[0], (DWORD)buff.size());
 
         return std::make_tuple(convert().to_bytes(&buff[0]), true);
     }
@@ -180,7 +180,7 @@ namespace lemon { namespace os {
 
             std::vector<wchar_t> buff(length);
 
-            ::GetSystemDirectoryW(&buff[0], buff.size());
+            ::GetSystemDirectoryW(&buff[0], (UINT)buff.size());
 
             paths.push_back(convert().to_bytes(&buff[0]));
     #else

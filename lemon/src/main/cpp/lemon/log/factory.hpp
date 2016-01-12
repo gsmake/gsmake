@@ -5,6 +5,7 @@
 #include <atomic>
 #include <vector>
 #include <string>
+#include <memory>
 #include <thread>
 
 #include <unordered_map>
@@ -37,12 +38,23 @@ namespace lemon{ namespace log{
 		/**
 		 * add new logger's sink
 		 */
-		void add_sink(sink* s);
+		void add_sink(std::unique_ptr<sink> s);
+		void add_sink(const std::string & name, std::unique_ptr<sink> s);
 
 		/**
 		 * remove sink
 		 */
-		void remove_sink(sink* s);
+		void remove_sink(const std::string & name);
+
+		/*
+		 * remove all sink
+		 */
+		void remove_all_sinks();
+
+		/**
+		 * get the sink object by the register name
+		 */
+		std::shared_ptr<sink> get_sink(const std::string & name) const;
 		/**
 		 * get or create new logger
 		 */
@@ -58,15 +70,15 @@ namespace lemon{ namespace log{
 		void writeloop();
 
 	private:
-		int													_levels;
-		std::mutex          								_mutex;
-		std::unordered_map<std::string, logger*>			_loggers;
-		std::unordered_set<sink*>							_sinks;
-		std::atomic<bool>									_exitflag;
-		std::condition_variable_any							_notify;
-		std::condition_variable_any							_exit_notify;
-		std::thread											_writer;
-		std::vector<message>								_messages;
+		int															_levels;
+		mutable std::mutex          								_mutex;
+		std::unordered_map<std::string, logger*>					_loggers;
+		std::unordered_map<std::string, std::shared_ptr<sink>>		_sinks;
+		std::atomic<bool>											_exitflag;
+		std::condition_variable_any									_notify;
+		std::condition_variable_any									_exit_notify;
+		std::thread													_writer;
+		std::vector<message>										_messages;
 	};
 
 }}

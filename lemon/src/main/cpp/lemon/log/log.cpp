@@ -12,7 +12,32 @@ namespace lemon{ namespace log{
 	void init()
 	{
 		_factory = new factory();
-		_factory->add_sink(new console());
+	}
+
+	void add_sink(std::unique_ptr<sink> s)
+	{
+		std::call_once(flag, init);
+
+		_factory->add_sink(std::move(s));
+	}
+
+	void add_sink(const std::string & name, std::unique_ptr<sink> s)
+	{
+		std::call_once(flag, init);
+
+		_factory->add_sink(name,std::move(s));
+	}
+	void remove_all_sinks()
+	{
+		std::call_once(flag, init);
+
+		_factory->remove_all_sinks();
+	}
+	std::shared_ptr<sink> get_sink(const std::string & name)
+	{
+		std::call_once(flag, init);
+
+		return _factory->get_sink(name);
 	}
 
     const logger& get(const std::string &name)

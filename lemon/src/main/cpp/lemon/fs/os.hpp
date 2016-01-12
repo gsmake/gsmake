@@ -4,10 +4,10 @@
 #include <memory>
 
 #include <lemon/fs/filepath.hpp>
+#include <lemon/fs/file_status.hpp>
 #include <lemon/fs/dir_iterator.hpp>
 
 namespace lemon{ namespace fs{
-
     /**
      * get current working directory
      */
@@ -213,6 +213,105 @@ namespace lemon{ namespace fs{
             throw std::system_error(err);
         }
     }
+
+	void copy_file(const filepath & from,const filepath& to,std::error_code & errc) noexcept;
+
+	inline void copy_file(const filepath & from, const filepath& to)
+	{
+		std::error_code err;
+
+		copy_file(from,to, err);
+
+		if (err)
+		{
+			throw std::system_error(err);
+		}
+	}
+
+	enum class copy_options {
+		none = 0,
+		skip_existing = 1,
+		overwrite_existing = 2,
+		update_existing = 4,
+		recursive = 8,
+		copy_symlinks = 16,
+		skip_symlinks = 32,
+		directories_only = 64,
+		create_symlinks = 128,
+		create_hard_links = 256
+	};
+
+	inline void copy_file(const filepath & from, const filepath& to, copy_options options, std::error_code & errc) noexcept
+	{
+		if(exists(to))
+		{
+			if(((int)options & (int)copy_options::skip_existing) != 0)
+			{
+				return;
+			}
+
+			if (((int)options & (int)copy_options::overwrite_existing) != 0)
+			{
+				remove_file(to, errc);
+				if (errc)
+				{
+					return;
+				}
+				goto COPY;
+			}
+
+			if (((int)options & (int)copy_options::update_existing) != 0)
+			{
+				remove_file(to, errc);
+				if (errc)
+				{
+					return;
+				}
+				goto COPY;
+			}
+
+			errc = std::make_error_code(std::errc::file_exists);
+			return;
+		}
+COPY:
+		copy_file(from, to, errc);
+	}
+
+	inline void copy_file(const filepath & from, const filepath& to, copy_options options)
+	{
+		std::error_code err;
+
+		copy_file(from, to, options, err);
+
+		if (err)
+		{
+			throw std::system_error(err);
+		}
+	}
+
+	file_status status(const filepath & path, std::error_code & err) noexcept;
+
+	inline file_status status(const filepath & path)
+	{
+		std::error_code err;
+		return status(path, err);
+	}
+
+	std::uintmax_t file_size(const filepath& path, std::error_code& ec);
+
+	inline std::uintmax_t file_size(const filepath& path)
+	{
+		std::error_code err;
+
+		auto size = file_size(path,err);
+
+		if (err)
+		{
+			throw std::system_error(err);
+		}
+
+		return size;
+	}
 }}
 
 #endif //LEMON_FS_OS_HPP

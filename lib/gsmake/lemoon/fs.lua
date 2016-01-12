@@ -1,46 +1,32 @@
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local logger    = class.new("lemoon.log","lemoon")
 
 local module = require "lemoonc.fs"
 
-local has_force_flag = function(flags)
-    return string.match(flags or "","f") ~= nil
-end
-
-local has_merge_flag = function(flags)
-    return string.match(flags or "","m") ~= nil
-end
-
-function module.copy_file(source,target,flags)
-
-    if module.exists(target) then
-        if has_force_flag(flags) then
-            module.rm(target,true)
-        else
-            error(string.format("target file already exists :%s",target),2)
-        end
-
-    end
-
-    local srcFile = io.open(source, "rb")
-    local targetFile = io.open(target, "wb")
-
-    while true do
-        local srcData = srcFile:read(512)
-        if srcData == nil then break end
-        targetFile:write(srcData)
-    end
-
-
-
-    srcFile:close()
-    targetFile:close()
-end
+module.none = 0
+module.skip_existing = 1
+module.overwrite_existing = 2
+module.update_existing = 4
+module.recursive = 8
+module.copy_symlinks = 16
+module.skip_symlinks = 32
+module.directories_only = 64
+module.create_symlinks = 128
+module.create_hard_links = 256
 
 -- copy the directory to target path
 function module.copy_dir(from,to,flags)
-    if module.exists(to) and not has_merge_flag(flags) then
-        error("copy directory error: already exists\n\tfrom: %s\n\tto: %s",from,to)
+    if module.exists(to) then
+
+        if flags & module.skip_existing ~= 0 then
+            return
+        elseif flags & module.overwrite_existing ~= 0 then
+            module.rm(to,true)
+        elseif flags & module.update_existing == 0 then
+            throw("copy directory error: already exists\n\tfrom: %s\n\tto: %s",from,to)
+        end
+
     end
 
     if not module.exists(to) then

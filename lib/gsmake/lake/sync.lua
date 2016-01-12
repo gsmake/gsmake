@@ -1,10 +1,11 @@
 -- the lake package sync services
 local fs        = require "lemoon.fs"
 local regex     = require "lemoon.regex"
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 
 -- cached logger
-local logger = class.new("lemoon.log","lake")
+local logger = class.new("lemoon.log","gsmake")
 
 local module = {}
 
@@ -30,7 +31,7 @@ function module:get_sync_executor(name,version)
             local ok, executor = pcall(class.new,executorName,self.lake,name,version)
 
             if not ok then
-                error(string.format("load sync executor %s err :\n\t%s",executorName,executor))
+                throw("load sync executor %s err :\n\t%s",executorName,executor)
             end
 
             logger:I("sync package '%s:%s' -- success ",name,version)
@@ -48,7 +49,7 @@ function module:sync_remote(name,version)
     local ok, executor,url = self:get_sync_executor(name,version)
 
     if not ok then
-        error(string.format("sync package '%s:%s' -- failed,unknown remote site ",name,version))
+        throw("sync package '%s:%s' -- failed,unknown remote site ",name,version)
     end
 
     executor:sync_remote(url)
@@ -62,7 +63,7 @@ function module:sync_source(name,version)
     local ok, executor = self:get_sync_executor(name,version)
 
     if not ok then
-        error(string.format("sync package '%s:%s' -- failed,unknown remote site ",name,version))
+        throw("sync package '%s:%s' -- failed,unknown remote site ",name,version)
     end
 
     return executor:sync_source()

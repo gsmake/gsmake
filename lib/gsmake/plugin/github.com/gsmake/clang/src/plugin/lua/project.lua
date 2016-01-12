@@ -1,8 +1,9 @@
 local fs        = require "lemoon.fs"
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
 
 local module = {}
 
@@ -82,7 +83,7 @@ function module:link(projects)
             local proj = projects[dep]
 
             if proj == nil then
-                error(string.format("[%s] depend inner project [%s] -- not found ",self.Name,dep))
+                throw("[%s] depend inner project [%s] -- not found ",self.Name,dep)
             end
 
             logger:D("found project [%s] dependency %s",self.Name,dep)

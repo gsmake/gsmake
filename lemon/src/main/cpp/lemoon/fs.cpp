@@ -190,6 +190,25 @@ namespace lemoon{namespace{
         }
     }
 
+	int copy_file(lua_State *L)
+	{
+		lemon::fs::copy_options options = lemon::fs::copy_options::none;
+		
+		if (lua_type(L, 3) != LUA_TNONE && lua_type(L, 3) != LUA_TNIL)
+		{
+			options = (lemon::fs::copy_options)luaL_checkinteger(L, 3);
+		}
+		std::error_code err;
+		lemon::fs::copy_file(luaL_checkstring(L, 1), luaL_checkstring(L, 2), options, err);
+
+		if (err)
+		{
+			luaL_error(L, "[lemoon.fs] %s", err.message().c_str());
+		}
+
+		return 0;
+	}
+
 
     static luaL_Reg funcs[] = {
         {"list",list},
@@ -199,6 +218,7 @@ namespace lemoon{namespace{
         {"isdir",is_dir},
         {"exists",exists},
         {"mkdir",mkdir},
+		{"copy_file",copy_file},
         {"rm",rm},
         {NULL, NULL}
     };

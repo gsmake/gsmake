@@ -2,7 +2,7 @@ local sys       = require "lemoon.sys"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
 
 local module = {}
 

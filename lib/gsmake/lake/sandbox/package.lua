@@ -1,7 +1,8 @@
+local throw = require "lemoon.throw"
 local class = require "lemoon.class"
 
 -- cached logger
-local logger = class.new("lemoon.log","lake")
+local logger = class.new("lemoon.log","gsmake")
 
 local module = {}
 
@@ -57,7 +58,7 @@ function module.ctor(env,package)
 
             for _,hiden in pairs(hidenval) do
                 if hiden  == name then
-                    error(string.format("don't modify system variable '%s'",name),2)
+                    throw("don't modify system variable '%s'",name)
                 end
             end
 

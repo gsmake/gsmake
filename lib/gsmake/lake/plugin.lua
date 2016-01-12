@@ -1,10 +1,11 @@
 local fs        = require "lemoon.fs"
+local throw = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
 
 -- cached logger
-local logger = class.new("lemoon.log","lake")
+local logger = class.new("lemoon.log","gsmake")
 
 local module = {}
 function module.ctor(name,owner)
@@ -46,7 +47,7 @@ end
 function module:setup()
 
     if not fs.exists(self.Path) then
-        error(string.format("[%s:%s]'s plugin [%s:%s] not install ",self.Owner.Name,self.Owner.Version,self.Name,self.Version))
+        throw("[%s:%s]'s plugin [%s:%s] not install ",self.Owner.Name,self.Owner.Version,self.Name,self.Version)
     end
 
     local pluginMain = filepath.join(self.Path,"plugin.lua")

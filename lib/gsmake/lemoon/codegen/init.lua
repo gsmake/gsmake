@@ -1,3 +1,4 @@
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local module    = {}
 
@@ -16,7 +17,7 @@ end
 function module:render (writer,name,env)
     local render = self.templates[name]
     if render == nil then
-        error(string.format("unknown template(%s)",name),2)
+        throw("unknown template(%s)",name)
     end
 
     if type(writer) == "string" then
@@ -25,7 +26,7 @@ function module:render (writer,name,env)
         writer:final()
 
         if not ok then
-            error(err)
+            throw(err)
         end
     else
         render:eval(writer,env)

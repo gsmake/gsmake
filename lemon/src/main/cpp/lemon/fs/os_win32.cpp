@@ -2,7 +2,27 @@
 
 #ifdef WIN32
 
+
 namespace lemon {namespace fs {
+
+#define __READONLY_PERMS	\
+	perms((int)perms::all & ~(int)__WRITE_PERMS)
+#define __WRITE_PERMS	\
+	perms((int)perms::owner_write | (int)perms::group_write | (int)perms::others_write)
+
+
+#define _FILE_ATTRIBUTE_REGULAR	\
+	(FILE_ATTRIBUTE_ARCHIVE \
+	| FILE_ATTRIBUTE_COMPRESSED \
+	| FILE_ATTRIBUTE_ENCRYPTED \
+	| FILE_ATTRIBUTE_HIDDEN \
+	| FILE_ATTRIBUTE_NORMAL \
+	| FILE_ATTRIBUTE_NOT_CONTENT_INDEXED \
+	| FILE_ATTRIBUTE_OFFLINE \
+	| FILE_ATTRIBUTE_READONLY \
+	| FILE_ATTRIBUTE_SPARSE_FILE \
+	| FILE_ATTRIBUTE_SYSTEM \
+	| FILE_ATTRIBUTE_TEMPORARY)
 
 
 	filepath current_path(std::error_code &e) noexcept
@@ -108,6 +128,66 @@ namespace lemon {namespace fs {
 		}
 	}
 
+	void copy_file(const filepath & from, const filepath& to, std::error_code & errc) noexcept
+	{
+		if(!::CopyFileW(from.wstring().c_str(), to.wstring().c_str(), TRUE))
+		{
+			errc = std::error_code(GetLastError(),std::system_category());
+		}
+	}
+
+	static file_type _Map_mode(int _Mode)
+	{	// map Windows file attributes to file_status
+		if ((_Mode & FILE_ATTRIBUTE_DIRECTORY) != 0)
+			return (file_type::directory);
+		else if ((_Mode & _FILE_ATTRIBUTE_REGULAR) != 0)
+			return (file_type::regular);
+		else
+			return (file_type::unknown);
+	}
+
+	file_status status(const filepath & path, std::error_code &) noexcept
+	{
+		WIN32_FILE_ATTRIBUTE_DATA data;
+
+		perms pmode;
+
+		if(GetFileAttributesExW(path.wstring().c_str(), GetFileExInfoStandard, &data))
+		{
+			pmode = data.dwFileAttributes & FILE_ATTRIBUTE_READONLY ? __READONLY_PERMS : perms::all;
+
+			return file_status(_Map_mode(data.dwFileAttributes),pmode);
+		}
+
+
+		int _Errno = GetLastError();
+
+		if (_Errno == ERROR_BAD_NETPATH
+			|| _Errno == ERROR_BAD_PATHNAME
+			|| _Errno == ERROR_FILE_NOT_FOUND
+			|| _Errno == ERROR_INVALID_DRIVE
+			|| _Errno == ERROR_INVALID_NAME
+			|| _Errno == ERROR_INVALID_PARAMETER
+			|| _Errno == ERROR_PATH_NOT_FOUND)
+
+			return file_status(file_type::not_found);
+		else
+			return file_status(file_type::unknown);
+	}
+
+	std::uintmax_t file_size(const filepath& path, std::error_code& ec)
+	{
+		WIN32_FILE_ATTRIBUTE_DATA data;
+
+		if (GetFileAttributesExW(path.wstring().c_str(), GetFileExInfoStandard, &data))
+		{
+			return ((uintmax_t)data.nFileSizeHigh << 32 | data.nFileSizeLow);
+		}
+
+		ec = std::make_error_code(std::errc::operation_not_permitted);
+
+		return (uintmax_t)-1;
+	}
 }}
 
 

@@ -1,7 +1,8 @@
 local fs        = require "lemoon.fs"
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
 
 local config = {
 
@@ -15,7 +16,7 @@ local config = {
 task.install = function(self,prefix)
 
     if prefix == nil or prefix == "" then
-        error("task install expect install path")
+        throw("task install expect install path")
     end
 
     prefix = fs.abs(prefix)
@@ -48,7 +49,7 @@ task.install = function(self,prefix)
         local srcDir = filepath.join(packagePath,dir)
 
         if fs.exists(srcDir) then
-            fs.copy_dir(srcDir,targetPath,"fm")
+            fs.copy_dir(srcDir,targetPath,fs.update_existing)
         end
     end
 
@@ -59,7 +60,7 @@ task.install = function(self,prefix)
         local srcDir = filepath.join(packagePath,dir)
 
         if fs.exists(srcDir) then
-            fs.copy_dir(srcDir,targetPath,"fm")
+            fs.copy_dir(srcDir,targetPath,fs.update_existing)
         end
     end
 end

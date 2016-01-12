@@ -14,6 +14,7 @@ namespace lemon{ namespace log{
 	{
 	public:
 		virtual void write(const message & msg) = 0;
+		virtual ~sink(){}
 	};
 
 	/**

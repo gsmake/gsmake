@@ -38,10 +38,6 @@ function class:V(fmt,...)
     self:write(32,fmt,...)
 end
 
-function class:exit()
-    __lemoon_log.exit()
-end
-
 function class.ctor(name)
 
     local log = {}

@@ -1,7 +1,8 @@
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
 
 local module = {}
 
@@ -57,7 +58,7 @@ function module:run(name,...)
     local taskGroup = self.taskGroups[name]
 
     if nil == taskGroup then
-        error(string.format("[%s:%s] unknown task name :%s",self.package.Name,self.package.Version,name))
+        throw("[%s:%s] unknown task name :%s",self.package.Name,self.package.Version,name)
     end
 
    local callstack = self:topSort(taskGroup)
@@ -107,7 +108,7 @@ function module:topSort(taskGroup)
 
         errmsg = string.format("%s\n\t%s",errmsg, taskGroup.Name)
 
-        error(errmsg)
+        throw(errmsg)
     end
 
     local sortGroups = {}
@@ -123,7 +124,7 @@ function module:topSort(taskGroup)
             local prev = self.taskGroups[task.Prev]
 
             if prev == nil then
-                error(string.format("unknown previous task(%s) for task(%s) from package [%s:%s]",task.Prev,task.Name,task.Package.Name,task.Package.Version))
+                throw("unknown previous task(%s) for task(%s) from package [%s:%s]",task.Prev,task.Name,task.Package.Name,task.Package.Version)
             end
 
             local childSortGroups = self:topSort(prev)

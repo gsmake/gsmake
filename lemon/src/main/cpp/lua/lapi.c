@@ -1054,7 +1054,7 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
         luaE_setdebt(g, debt);
         luaC_checkGC(L);
       }
-      g->gcrunning = oldrunning;  /* restore previous state */
+      g->gcrunning = (lu_byte)oldrunning;  /* restore previous state */
       if (debt > 0 && g->gcstate == GCSpause)  /* end of cycle? */
         res = 1;  /* signal it */
       break;
@@ -1086,7 +1086,10 @@ LUA_API int lua_gc (lua_State *L, int what, int data) {
 ** miscellaneous functions
 */
 
-
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable :4702)
+#endif
 LUA_API int lua_error (lua_State *L) {
   lua_lock(L);
   api_checknelems(L, 1);
@@ -1094,7 +1097,9 @@ LUA_API int lua_error (lua_State *L) {
   /* code unreachable; will unlock when control actually leaves the kernel */
   return 0;  /* to avoid warnings */
 }
-
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 LUA_API int lua_next (lua_State *L, int idx) {
   StkId t;

@@ -78,7 +78,10 @@
 
 #endif							/* } */
 
-
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable :4324)
+#endif
 
 /* chain list of long jump buffers */
 struct lua_longjmp {
@@ -86,6 +89,11 @@ struct lua_longjmp {
   luai_jmpbuf b;
   volatile int status;  /* error code */
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
 
 
 static void seterrorobj (lua_State *L, int errcode, StkId oldtop) {
@@ -326,7 +334,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
       luaC_checkGC(L);  /* stack grow uses memory */
       luaD_checkstack(L, LUA_MINSTACK);  /* ensure minimum stack size */
       ci = next_ci(L);  /* now 'enter' new function */
-      ci->nresults = nresults;
+      ci->nresults = (short)nresults;
       ci->func = restorestack(L, funcr);
       ci->top = L->top + LUA_MINSTACK;
       lua_assert(ci->top <= L->stack_last);
@@ -357,7 +365,7 @@ int luaD_precall (lua_State *L, StkId func, int nresults) {
         func = restorestack(L, funcr);  /* previous call can change stack */
       }
       ci = next_ci(L);  /* now 'enter' new function */
-      ci->nresults = nresults;
+      ci->nresults = (short)nresults;
       ci->func = func;
       ci->u.l.base = base;
       ci->top = base + p->maxstacksize;
@@ -591,7 +599,7 @@ LUA_API int lua_resume (lua_State *L, lua_State *from, int nargs) {
     }
     else lua_assert(status == L->status);  /* normal end or yield */
   }
-  L->nny = oldnny;  /* restore 'nny' */
+  L->nny = (unsigned short)oldnny;  /* restore 'nny' */
   L->nCcalls--;
   lua_assert(L->nCcalls == ((from) ? from->nCcalls : 0));
   lua_unlock(L);

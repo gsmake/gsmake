@@ -27,7 +27,9 @@
 ************************************************************************/
 
 #ifdef WIN32
+#ifndef _CRT_SECURE_NO_WARNINGS
 #define  _CRT_SECURE_NO_WARNINGS
+#endif //_CRT_SECURE_NO_WARNINGS
 #endif //WIN32
 
 #include <stdlib.h>
@@ -37,6 +39,11 @@
 #include <lua/lualib.h>
 #include <lua/lauxlib.h>
 #include <sqlite/lsqlite3.h>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable :4100 4267 4244)
+#endif
 
 #define LUA_LIB
 

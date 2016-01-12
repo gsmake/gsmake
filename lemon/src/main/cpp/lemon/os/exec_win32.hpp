@@ -111,7 +111,7 @@ namespace lemon {
 				return exitCode;
 			}
 
-			void work_path(const fs::filepath & path, std::error_code & err) noexcept
+			void work_path(const fs::filepath & path, std::error_code &) noexcept
 			{
 				_workpath = path;
 			}

@@ -3,9 +3,12 @@ local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
 
-local logger    = class.new("lemoon.log","lake")
+local logger    = class.new("lemoon.log","gsmake")
+local logsink    = require "lemoon.logsink"
 
 local module = {}
+
+local once_flag = false
 
 function module.ctor(workspace)
 
@@ -28,6 +31,20 @@ function module.ctor(workspace)
 
     -- set the project depend packages install path
     obj.Config.GSMAKE_INSTALL_PATH     = filepath.join(obj.Config.GSMAKE_WORKSPACE,obj.Config.GSMAKE_TMP_DIR)
+
+    -- init file sink
+
+    if not once_flag then
+        logsink.file_sink(
+            "gsmake",
+            filepath.join(obj.Config.GSMAKE_INSTALL_PATH,"log"),
+            "gsmake",
+            ".log",
+            false,
+            1024*1024*10)
+
+        once_flag = true
+    end
 
     if not fs.exists(obj.Config.GSMAKE_REPO) then
         fs.mkdir(obj.Config.GSMAKE_REPO,true) -- create repo directories

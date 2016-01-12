@@ -1,9 +1,10 @@
+local throw = require "lemoon.throw"
 local class = require "lemoon.class"
 local sqlite3 = require "lemoon.sqlite3"
 local filepath = require "lemoon.filepath"
 
 -- cache the logger object
-local logger = class.new("lemoon.log","lake")
+local logger = class.new("lemoon.log","gsmake")
 
 
 local module = {}
@@ -12,7 +13,7 @@ local sqlexec = function(db,sql)
     local id, err = db:exec(sql)
 
     if err ~= nil then
-        error(string.format("%s\n\t%s",sql,err),2)
+        throw("%s\n\t%s",sql,err)
     end
 
     return id

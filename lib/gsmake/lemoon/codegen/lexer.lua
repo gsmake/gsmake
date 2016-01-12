@@ -1,3 +1,4 @@
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local module    = {}
 local logger    = class.new("lemoon.log","lemoon.codegen")
@@ -32,7 +33,7 @@ local function next (lexer)
     else
         local from,to = lexer.src:find("}}",lexer.pos,true)
         if from == nil then
-            error(string.format("unclosed code block(%s)",lexer.name))
+            throw("unclosed code block(%s)",lexer.name)
         end
         local token = lexer.src:sub(lexer.pos,from - 1)
         lexer.pos = to + 1

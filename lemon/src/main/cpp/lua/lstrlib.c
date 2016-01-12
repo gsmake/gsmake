@@ -23,6 +23,10 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable :4244 4267 4310)
+#endif
 
 /*
 ** maximum number of captures that a pattern can do during

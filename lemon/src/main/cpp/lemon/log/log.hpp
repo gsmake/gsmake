@@ -9,9 +9,15 @@
 #include <lemon/log/sink.hpp>
 #include <lemon/log/logger.hpp>
 #include <lemon/log/factory.hpp>
+#include <lemon/log/file_sink.hpp>
 
 namespace lemon{ namespace log{
 	
+	void add_sink(std::unique_ptr<sink> s);
+	void add_sink(const std::string & name,std::unique_ptr<sink> s);
+	void remove_all_sinks();
+	std::shared_ptr<sink> get_sink(const std::string & name);
+
 	const logger& get(const std::string & name);
 
 	void close();
