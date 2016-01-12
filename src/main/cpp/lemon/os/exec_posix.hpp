@@ -1,7 +1,9 @@
-#include <lemon/nocopy.hpp>
+
 #ifndef LEMON_OS_EXEC_POSIX_HPP
 #define LEMON_OS_EXEC_POSIX_HPP
 
+#include <unistd.h>
+#include <sys/wait.h>
 
 #include <string>
 #include <thread>
@@ -14,6 +16,7 @@
 #include <lemon/fs/fs.hpp>
 #include <lemon/nocopy.hpp>
 #include <lemon/log/log.hpp>
+#include <lemon/nocopy.hpp>
 #include <lemon/os/args_convert.hpp>
 
 namespace lemon{ namespace os{

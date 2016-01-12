@@ -179,7 +179,7 @@ namespace lemoon{namespace{
         }
         catch(const std::system_error &e)
         {
-            return luaL_error(L,"[lemoon.fs] call emon::fs::read_directory error :%s",err.message().c_str());
+            return luaL_error(L,"[lemoon.fs] call emon::fs::read_directory error :%s",e.what());
         }
     }
 
