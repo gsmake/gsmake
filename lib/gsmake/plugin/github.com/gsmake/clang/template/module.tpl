@@ -1,3 +1,8 @@
+@{{for _,path in ipairs(ConfigFiles) do}}
+include(@{{path}})
+
+@{{ end }}
+
 include_directories(
 @{{ for _,src in ipairs(SrcDirs) do }}
 @{{src}}

@@ -252,7 +252,7 @@ function module:install (install_path)
                 fs.mkdir(dir,true)
             end
 
-            fs.copy_file(header,target)
+            fs.copy_file(header,target,"fm")
         end
     end
 

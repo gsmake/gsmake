@@ -11,16 +11,29 @@ local has_merge_flag = function(flags)
     return string.match(flags or "","m") ~= nil
 end
 
-function module.copy_file(source,target)
+function module.copy_file(source,target,flags)
 
-    local srcFile = io.open(source, "r")
+    if module.exists(target) then
+        if has_force_flag(flags) then
+            module.rm(target,true)
+        else
+            error(string.format("target file already exists :%s",target),2)
+        end
 
-    local srcData = srcFile:read("*a")
+    end
+
+    local srcFile = io.open(source, "rb")
+    local targetFile = io.open(target, "wb")
+
+    while true do
+        local srcData = srcFile:read(512)
+        if srcData == nil then break end
+        targetFile:write(srcData)
+    end
+
+
 
     srcFile:close()
-
-    local targetFile = io.open(target, "w")
-    targetFile:write(srcData)
     targetFile:close()
 end
 
