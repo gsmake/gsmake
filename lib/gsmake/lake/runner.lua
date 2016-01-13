@@ -3,6 +3,7 @@ local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
 local logger    = class.new("lemoon.log","gsmake")
+local console   = class.new("lemoon.log","console")
 
 local module = {}
 
@@ -19,10 +20,18 @@ function module.ctor(package)
 
     package:setup()
 
+    if package.Lake.Root then
+        console:I("prepare -- success")
+    end
+
     return obj
 end
 
 function module:run(name,...)
+
+    if self.package.Lake.Root then
+        console:I("run package task :%s ...",name)
+    end
 
     for _,plugin in pairs(self.package.Plugins or {}) do
         for name,task in pairs(plugin.Tasks or {}) do
@@ -82,6 +91,10 @@ function module:run(name,...)
         end
 
         logger:I("invoke task(%s) -- success",taskgroup.Name)
+    end
+
+    if self.package.Lake.Root then
+        console:I("run package task :%s -- success",name)
     end
 
 end

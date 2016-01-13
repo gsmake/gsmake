@@ -20,10 +20,8 @@ function module.ctor(lake)
 end
 
 function module:load(path,name,version)
-
+    
     local package = class.new("lake.package",self.lake,path,name,version)
-
-    logger:I("%s",path)
 
     self.packages[package.Name] = package
 

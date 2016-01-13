@@ -30,9 +30,7 @@ end
 
 function module:load()
     -- first sync the plugin's package
-    logger:D("sync plugin package [%s:%s]",self.Name,self.Version)
     local sourcePath = self.sync:sync(self.Name,self.Version)
-    logger:D("sync plugin package [%s:%s] -- success\n\tpath :%s",self.Name,self.Version,sourcePath)
 
     self.Package = self.loader:load(sourcePath,self.Name,self.Version)
 

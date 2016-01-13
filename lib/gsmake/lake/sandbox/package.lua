@@ -62,8 +62,6 @@ function module.ctor(env,package)
                 end
             end
 
-            logger:T("package <%s> create property :%s",package.Name,name)
-
             package.Properties[name] = val
         end
     })

@@ -71,6 +71,8 @@ end
 
 function module:sync(name,version)
 
+    logger:I("sync package[%s：%s] ...",name,version)
+
     if version == nil then
         version = self.lake.Config.GSMAKE_DEFAULT_VERSION
     end
@@ -78,17 +80,23 @@ function module:sync(name,version)
     local path,ok = self.db:query_source(name,version)
 
     if ok and fs.exists(path) then
+        logger:I("sync package[%s：%s] -- success\n\tdir :%s",name,version,path)
         return path
     end
 
     path,ok = self.db:query_sync(name,version)
 
     if ok and fs.exists(path) then
-        return self:sync_source(name,version)
+        logger:I("found local package [%s：%s] repo \n\tdir :%s",name,version,path)
+        path = self:sync_source(name,version)
+        logger:I("sync package[%s：%s] -- success\n\tdir :%s",name,version,path)
+        return path
     end
 
     self:sync_remote(name,version)
-    return self:sync_source(name,version)
+    path = self:sync_source(name,version)
+    logger:I("sync package[%s：%s] -- success\n\tdir :%s",name,version,path)
+    return path
 end
 
 return module

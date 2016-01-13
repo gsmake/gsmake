@@ -4,6 +4,7 @@ local filepath  = require "lemoon.filepath"
 
 
 local logger    = class.new("lemoon.log","gsmake")
+local console   = class.new("lemoon.log","console")
 local logsink    = require "lemoon.logsink"
 
 local module = {}
@@ -15,6 +16,7 @@ function module.ctor(workspace)
     local obj = {
         Config  = class.clone(require "config");
         Remotes = class.clone(require "remotes");
+        Root    = false;
     }
 
 
@@ -47,6 +49,7 @@ function module.ctor(workspace)
         logsink.console_sink("console")
 
         once_flag = true
+        obj.Root = true
     end
 
     if not fs.exists(obj.Config.GSMAKE_REPO) then
@@ -57,8 +60,8 @@ function module.ctor(workspace)
         fs.mkdir(obj.Config.GSMAKE_INSTALL_PATH,true) -- create repo directories
     end
 
-
-    logger:D("gsmake variables :")
+    logger:I("create new gsmake instance for package :%s",obj.Config.GSMAKE_WORKSPACE)
+    logger:D("config variables :")
 
     for k,v in pairs(obj.Config) do
         local k = string.format("var %s = ",k)
@@ -79,9 +82,12 @@ end
 
 function module:loadSystemPlugin(dir)
 
+
     if fs.exists(filepath.join(dir,self.Config.GSMAKE_FILE)) then
+        logger:I("load system plugin ...\n\tdir :%s",dir)
         local package = self.Loader:load(dir)
         self.DB:save_source(package.Name,package.Version,dir,dir,true)
+        logger:I("load system plugin[%s:%s] -- success\n\tdir :%s",package.Name,package.Version,dir)
         return
     end
 
@@ -98,19 +104,40 @@ function module:loadSystemPlugin(dir)
 end
 
 function module:run(...)
+
+    local args = ""
+
+    for _,val in ipairs(table.pack(...)) do
+        args = args .. val .. " "
+    end
+
+    logger:I("run gsmake in directory ...\n\tdir :%s\n\targs :%s",self.Config.GSMAKE_WORKSPACE,args)
+    if self.Root then
+        console:I("start gsmake  ...")
+        console:I("workspace :%s",self.Config.GSMAKE_WORKSPACE)
+    end
     self.DB     = class.new("lake.db",self)
     self.Sync   = class.new("lake.sync",self)
     self.Loader = class.new("lake.loader",self)
     -- load default plugins
 
     local pluginDir = filepath.join(self.Config.GSMAKE_HOME,"lib/gsmake/plugin")
-
+    logger:I("load system plugins ...")
     self:loadSystemPlugin(pluginDir)
+    logger:I("load system plugins -- success")
 
     -- load root package
+    if self.Root then
+        console:I("prepare ...")
+    end
     local package = self.Loader:load(self.Config.GSMAKE_WORKSPACE)
 
     class.new("lake.runner",package):run(...)
+
+    logger:I("run gsmake in directory -- success\n\tdir :%s\n\targs :%s",self.Config.GSMAKE_WORKSPACE,args)
+    if self.Root then
+        console:I("gsmake -- success")
+    end
 end
 
 return module

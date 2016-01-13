@@ -49,8 +49,6 @@ function module.ctor(lake)
 
     logger:T("open gsmake database ...")
 
-    logger:D(lake.Config.GSMAKE_INSTALL_PATH)
-
     module.localdb(obj,function(db)
         sqlexec(db, [[
             create table if not exists _INSTALL
