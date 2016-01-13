@@ -3,8 +3,9 @@
 #include <lemon/log/log.hpp>
 #include <lemon/fs/filepath.hpp>
 
+#include <regex>
 #include <lemoon/lemoon.h>
-
+#include <lemon/strings.hpp>
 
 namespace lemoon{namespace log{
 
@@ -40,25 +41,54 @@ namespace lemoon{namespace log{
 
 	int lua_file_sink(lua_State *L)
 	{
-		std::string name = luaL_checkstring(L,1);
 
-		lemon::log::file_sink* s = new lemon::log::file_sink(
-			luaL_checkstring(L, 2), 
-			luaL_checkstring(L, 3), 
-			luaL_checkstring(L, 4), 
-			lua_toboolean(L,5)?true:false, 
-			luaL_checkinteger(L, 6));
+		using namespace lemon::log;
 
+		std::string sources = luaL_checkstring(L,1);
 
-		if(name.empty())
+		lemon::log::file_sink* filesink;
+
+		if(sources.empty())
 		{
-			lemon::log::add_sink(std::unique_ptr<lemon::log::sink>(s));
+			filesink = new file_sink(luaL_checkstring(L, 2), luaL_checkstring(L, 3));
 		}
 		else
 		{
-			lemon::log::add_sink(name, std::unique_ptr<lemon::log::sink>(s));
+			std::regex regex("\\s+");
+			std::sregex_token_iterator first{ sources.begin(), sources.end(), regex, -1 },last;
+
+			filesink = new file_sink({ first, last },luaL_checkstring(L, 2), luaL_checkstring(L, 3));
 		}
+
+		filesink->time_suffix(false);
+
+		lemon::log::add_sink(std::unique_ptr<sink>(filesink));
 		
+		return 0;
+	}
+
+	int lua_console_sink(lua_State *L)
+	{
+		using namespace lemon::log;
+
+		std::string sources = luaL_checkstring(L, 1);
+
+		lemon::log::sink* filesink;
+
+		if (sources.empty())
+		{
+			filesink = new console();
+		}
+		else
+		{
+			std::regex regex("\\s+");
+			std::sregex_token_iterator first{ sources.begin(), sources.end(), regex, -1 }, last;
+
+			filesink = new console({ first, last });
+		}
+
+		lemon::log::add_sink(std::unique_ptr<sink>(filesink));
+
 		return 0;
 	}
 
@@ -74,6 +104,7 @@ namespace lemoon{namespace log{
         {"log",lua_log},
         {"close",lua_log_close},
 		{"file_sink",lua_file_sink},
+		{"console_sink",lua_console_sink },
         {NULL, NULL}
     };
 

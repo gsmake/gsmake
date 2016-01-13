@@ -18,15 +18,29 @@ namespace lemon{namespace log{
 	class file_sink : public sink, private nocopy
 	{
 	public:
-		file_sink(
-			const fs::filepath dir,
-			const std::string &name,
-			const std::string &ext,
-			bool time_suffix,
-			std::uintmax_t maxisze)
-			:_dir(dir),_name(name),_ext(ext)
-			,_time_suffix(time_suffix)
-			,_maxsize(maxisze),_blocks(0)
+
+		file_sink(const std::vector<std::string> & sources,const fs::filepath dir, const std::string &name)
+			:sink(sources)
+			,_dir(dir)
+			, _name(name)
+			, _ext(".log")
+			, _time_suffix(true)
+			, _maxsize((std::uintmax_t)-1)
+			, _blocks(0)
+		{
+			if (!fs::exists(dir))
+			{
+				fs::create_directories(dir);
+			}
+		}
+
+		file_sink(const fs::filepath dir,const std::string &name)
+			:_dir(dir)
+			,_name(name)
+			,_ext(".log")
+			,_time_suffix(true)
+			,_maxsize((std::uintmax_t) -1)
+			,_blocks(0)
 		{
 			if (!fs::exists(dir))
 			{
@@ -39,9 +53,25 @@ namespace lemon{namespace log{
 			_stream.close();
 		}
 
-			
-		void write(const message & msg) final;
+		file_sink & ext(const std::string & name) 
+		{
+			_ext = name;
+			return *this;
+		}
 
+		file_sink & time_suffix(bool flag)
+		{
+			_time_suffix = flag;
+			return *this;
+		}
+
+		file_sink & max_size(std::uintmax_t maxsize)
+		{
+			_maxsize = maxsize;
+			return *this;
+		}
+
+		void write(const message & msg) final;
 	
 	private:
 
@@ -53,7 +83,7 @@ namespace lemon{namespace log{
 
 		const fs::filepath			_dir;
 		const std::string			_name;
-		const std::string 			_ext;
+		std::string 				_ext;
 		bool						_time_suffix;
 		std::uintmax_t				_maxsize;
 		size_t						_blocks;

@@ -35,7 +35,10 @@ namespace lemon{ namespace log{
 			{
 				for(auto s :_sinks)
 				{
-					s.second->write(msg);
+					if(s.second->apply(msg.Source))
+					{
+						s.second->write(msg);
+					}
 				}
 			}
 		}
@@ -50,7 +53,10 @@ namespace lemon{ namespace log{
 		{
 			for (auto s : _sinks)
 			{
-				s.second->write(msg);
+				if (s.second->apply(msg.Source))
+				{
+					s.second->write(msg);
+				}
 			}
 		}
 

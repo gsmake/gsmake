@@ -35,7 +35,7 @@ function module.ctor(workspace)
     -- init file sink
 
     if not once_flag then
-        local name = "gsmake" .. os.date("-%Y-%m-%d-%H%M%S")
+        local name = "gsmake" .. os.date("-%Y-%m-%d-%H_%M_%S")
         logsink.file_sink(
             "gsmake",
             filepath.join(obj.Config.GSMAKE_INSTALL_PATH,"log"),
@@ -43,6 +43,8 @@ function module.ctor(workspace)
             ".log",
             false,
             1024*1024*10)
+
+        logsink.console_sink("console")
 
         once_flag = true
     end
