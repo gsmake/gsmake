@@ -7,9 +7,11 @@
 #ifndef LEMON_IO_IO_SERVICE_HPP
 #define LEMON_IO_IO_SERVICE_HPP
 
+#include <atomic>
 #include <mutex>
 #include <tuple>
 #include <memory>
+#include <chrono>
 #include <system_error>
 #include <unordered_map>
 
@@ -39,6 +41,12 @@ namespace lemon{ namespace io{
 	template<typename Object>
 	void io_service_unregister(io_service_impl &impl, Object & obj) noexcept;
 
+	void io_service_complete(io_service_impl &impl, irp_base *irp, std::error_code & err) noexcept;
+
+	void io_service_notify_one(io_service_impl &impl, std::error_code & err) noexcept;
+
+	void io_service_close(io_service_impl &impl) noexcept;
+
 	template<typename Mutex> class io_object_base;
 
 	//
@@ -54,9 +62,14 @@ namespace lemon{ namespace io{
 
 		}
 
-		basic_io_service(io_service_impl *impl):_impl(impl)
+		basic_io_service(io_service_impl *impl):_impl(impl), _closed(false),_blocks(0)
 		{
 
+		}
+
+		~basic_io_service()
+		{
+			close();
 		}
 
 		void io_object_register(io_object_base<Mutex> & obj,std::error_code & err)
@@ -81,12 +94,51 @@ namespace lemon{ namespace io{
 		}
 
 		template<typename Duration>
-		void dispatch_once(Duration timeout,std::error_code & err)
+		void dispatch_once(Duration timeout,std::error_code & err) noexcept
 		{
+			_blocks++;
+
 #ifdef WIN32
 			auto result = io_service_dispatch(*_impl, timeout, err);
 #else
 #endif //WIN32
+
+			_blocks--;
+
+			if(std::get<0>(result))
+			{
+				auto irp = std::get<1>(result);
+
+				std::lock_guard<Mutex> lock(_mutex);
+
+				auto iter = _objects.find(irp->owner);
+
+				if(iter != _objects.end())
+				{
+					if(irp->op == irp_op::read)
+					{
+						iter->second->remove_irp_read(irp);
+					}
+					else
+					{
+						iter->second->remove_irp_write(irp);
+					}
+
+					irp->fire(irp);
+				}
+
+				irp->close(irp);
+			}
+		}
+
+		void dispatch_once(std::error_code & err)
+		{
+			return dispatch_once(std::chrono::system_clock::duration(-1),err);
+		}
+
+		void dispatch_once()
+		{
+			dispatch_once(std::chrono::system_clock::duration(-1));
 		}
 
 		template<typename Duration>
@@ -95,9 +147,45 @@ namespace lemon{ namespace io{
 			std::error_code err;
 			dispatch_once(timeout, err);
 
-			if(err)
+			if(err && err != std::errc::timed_out)
 			{
 				throw std::system_error(err);
+			}
+		}
+
+		void post_complete(irp_base * irp, std::error_code & err) noexcept
+		{
+			io_service_complete(*_impl, irp, err);
+		}
+
+		void notify_all(std::error_code & err) noexcept
+		{
+			unsigned int blocks = _blocks;
+
+			for (decltype(blocks) i = 0; i < blocks; i ++)
+			{
+				io_service_notify_one(*_impl, err);
+			}
+		}
+
+		void notify_all()
+		{
+			std::error_code err;
+			notify_all(err);
+
+			if (err)
+			{
+				throw std::system_error(err);
+			}
+		}
+
+		void close()
+		{
+			std::lock_guard<Mutex> lock(_mutex);
+
+			if(!_closed)
+			{
+				io_service_close(*_impl);
 			}
 		}
 
@@ -105,9 +193,13 @@ namespace lemon{ namespace io{
 
 		Mutex												_mutex;
 
+		std::atomic<unsigned int>							_blocks;
+
 		std::unique_ptr<io_service_impl>					_impl;
 
 		std::unordered_map<handler, io_object_base<Mutex>*>	_objects;
+
+		bool												_closed;
 	};
 
 	typedef basic_io_service<std::mutex> io_service;

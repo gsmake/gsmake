@@ -8,6 +8,8 @@
 using namespace lemon::test;
 
 int main() {
+	lemon::log::add_sink(std::unique_ptr<lemon::log::sink>(new lemon::log::console()));
+
     runner::run();
 
     lemon::log::close();

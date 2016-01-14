@@ -12,6 +12,7 @@
 
 #include <lemon/config.h>
 #include <lemon/nocopy.hpp>
+#include <lemon/io/io_errors.hpp>
 #include <lemon/io/irp_base.hpp>
 
 namespace lemon { namespace io {
@@ -31,7 +32,17 @@ namespace lemon { namespace io {
 
 		~io_service_impl()
 		{
-			CloseHandle(_handler);
+			close();
+		}
+
+		void close() noexcept
+		{
+			if(_handler != NULL)
+			{
+				CloseHandle(_handler);
+				_handler = NULL;
+			}
+			
 		}
 
 		template<typename Duration>
@@ -45,32 +56,49 @@ namespace lemon { namespace io {
 
 			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(timeout);
 
-			DWORD timeoutVal = milliseconds.count();
+			DWORD timeoutVal = (DWORD)milliseconds.count();
 
-			if(timeout.count() == 0)
+			if(timeout == Duration(-1))
 			{
 				timeoutVal = INFINITE;
 			}
 
 			if (GetQueuedCompletionStatus(_handler, &bytes, &completionKey, (LPOVERLAPPED*)&irp, (DWORD)timeoutVal))
 			{
-				return std::make_tuple(true, irp);
+				if(irp != nullptr)
+				{
+					irp->bytes_of_trans = bytes;
+					return std::make_tuple(true, irp);
+				}
+				else
+				{
+					return std::tuple<bool, irp_base*>();
+				}
+				
 			}
 
 			DWORD lasterror = GetLastError();
 
-			if (ERROR_ABANDONED_WAIT_0 != lasterror && WAIT_TIMEOUT != lasterror)
+			if (ERROR_ABANDONED_WAIT_0 == lasterror)
+			{
+				err = std::make_error_code(errc::io_service_closed);
+			}
+			else if (WAIT_TIMEOUT != lasterror)
 			{
 				err = std::error_code(lasterror, std::system_category());
 
 				if (irp == NULL) {
-					
-
 					return std::tuple<bool, irp_base*>();
 				}
+
+				irp->error_code = err;
+
+				err.clear();
 				
 				return std::make_tuple(true, irp);
 			}
+
+			err = std::make_error_code(std::errc::timed_out);
 
 			return std::tuple<bool, irp_base*>();
 
@@ -86,9 +114,25 @@ namespace lemon { namespace io {
 		}
 
 		template<typename Object>
-		void io_service_unregister(Object & obj) noexcept
+		void io_service_unregister(Object &) noexcept
 		{
 
+		}
+
+		void io_service_complete(irp_base *irp, std::error_code & err) noexcept
+		{
+			if(!PostQueuedCompletionStatus(_handler, (DWORD)irp->bytes_of_trans, 0, (LPOVERLAPPED)irp))
+			{
+				err = std::error_code(GetLastError(), std::system_category());
+			}
+		}
+
+		void notify_one(std::error_code & err) noexcept
+		{
+			if (!PostQueuedCompletionStatus(_handler, 0, 0, NULL))
+			{
+				err = std::error_code(GetLastError(), std::system_category());
+			}
 		}
 
 	private:
@@ -97,21 +141,36 @@ namespace lemon { namespace io {
 	};
 
 	template<typename Duration>
-	std::tuple<bool, irp_base*> io_service_dispatch(io_service_impl &impl, Duration timeout, std::error_code & err) noexcept
+	inline std::tuple<bool, irp_base*> io_service_dispatch(io_service_impl &impl, Duration timeout, std::error_code & err) noexcept
 	{
 		return impl.io_service_dispatch(timeout, err);
 	}
 
 	template<typename Object>
-	void io_service_register(io_service_impl &impl, Object & obj, std::error_code & err) noexcept
+	inline void io_service_register(io_service_impl &impl, Object & obj, std::error_code & err) noexcept
 	{
 		impl.io_service_register(obj, err);
 	}
 
 	template<typename Object>
-	void io_service_unregister(io_service_impl &impl, Object & obj) noexcept
+	inline void io_service_unregister(io_service_impl &impl, Object & obj) noexcept
 	{
 		impl.io_service_unregister(obj);
+	}
+
+	inline void io_service_complete(io_service_impl &impl, irp_base *irp, std::error_code & err) noexcept
+	{
+		impl.io_service_complete(irp,err);
+	}
+
+	inline void io_service_close(io_service_impl &impl) noexcept
+	{
+		impl.close();
+	}
+
+	inline void io_service_notify_one(io_service_impl &impl, std::error_code & err) noexcept
+	{
+		impl.notify_one(err);
 	}
 }}
 

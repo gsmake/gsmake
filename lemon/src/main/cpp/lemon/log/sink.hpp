@@ -19,7 +19,7 @@ namespace lemon{ namespace log{
 		sink():_apply_all(true){}
 
 		sink(const std::vector<std::string> & sources)
-			:_apply_sources(sources.begin(),sources.end())
+			:_apply_sources(sources.begin(),sources.end()),_apply_all(false)
 		{
 
 		}
@@ -34,7 +34,7 @@ namespace lemon{ namespace log{
 
 		bool apply(const std::string & source) const
 		{
-			return _apply_sources.count(source) == 1;
+			return _apply_all || _apply_sources.count(source) == 1;
 		}
 
 	private:

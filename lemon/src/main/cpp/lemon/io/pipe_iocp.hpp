@@ -20,12 +20,12 @@ namespace lemon {namespace io {
 	typedef std::wstring_convert<std::codecvt<wchar_t, char, std::mbstate_t>, wchar_t> convert;
 	
 	template<typename Mutex>
-	std::tuple<io_object_base<Mutex>*, io_object_base<Mutex>*>
+	std::tuple<basic_io_stream<Mutex>*, basic_io_stream<Mutex>*>
 		make_pipe(basic_io_service<Mutex> & service, std::error_code & err)
 	{
 		lemon::uuids::random_generator random;
 
-		std::string name = "\\\\.\\pipe\\";
+		std::string name = "\\\\.\\pipe\\lemon-";
 
 		name = name + lemon::uuids::to_string(random());
 
@@ -45,12 +45,12 @@ namespace lemon {namespace io {
 		reader = CreateNamedPipeW(
 			conv.from_bytes(name).c_str(),
 			PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
-			PIPE_TYPE_BYTE | PIPE_READMODE_BYTE |  PIPE_WAIT, 
-			2,
+			PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+			PIPE_UNLIMITED_INSTANCES,
 			1024,
 			1024,
 			5000, 
-			NULL);   
+			&sa);   
 
 		if(reader == INVALID_HANDLE_VALUE)
 		{
@@ -63,7 +63,7 @@ namespace lemon {namespace io {
 			conv.from_bytes(name).c_str(),
 			GENERIC_WRITE,
 			0,
-			NULL,
+			&sa,
 			OPEN_EXISTING,
 			FILE_FLAG_OVERLAPPED,
 			NULL);
@@ -77,8 +77,8 @@ namespace lemon {namespace io {
 
 		// exception safe confirm
 
-		std::unique_ptr<io_object_base<Mutex>> read_io_object(new io_object_iocp<Mutex>(service, reader));
-		std::unique_ptr<io_object_base<Mutex>> write_io_object(new io_object_iocp<Mutex>(service, writer));
+		std::unique_ptr<basic_io_stream<Mutex>> read_io_object(new basic_io_stream<Mutex>(service, reader));
+		std::unique_ptr<basic_io_stream<Mutex>> write_io_object(new basic_io_stream<Mutex>(service, writer));
 
 		return std::make_tuple(read_io_object.release(), write_io_object.release());
 	}

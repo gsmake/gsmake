@@ -16,18 +16,19 @@ namespace lemon { namespace io{
 
 	
 	template<typename Mutex>
-	std::tuple<io_object_base<Mutex>*, io_object_base<Mutex>*> 
+	std::tuple<basic_io_stream<Mutex>*, basic_io_stream<Mutex>*>
 		make_pipe(basic_io_service<Mutex> & service,std::error_code & err);
 
 	template<typename Mutex>
 	class basic_pipe 
 	{
 	public:
-		basic_pipe(basic_io_service<Mutex> & mutex)
+
+		basic_pipe(basic_io_service<Mutex> & io)
 		{
 			std::error_code err;
 
-			auto pair = make_pipe(mutex,err);
+			auto pair = make_pipe(io,err);
 
 			if(err)
 			{
@@ -38,9 +39,19 @@ namespace lemon { namespace io{
 			_out.reset(std::get<1>(pair));
 		}
 
+		basic_io_stream<Mutex>& in () const
+		{
+			return *_in;
+		}
+
+		basic_io_stream<Mutex>& out() const
+		{
+			return *_out;
+		}
+
 	private:
-		std::unique_ptr<io_object_base<Mutex>>		_in;
-		std::unique_ptr<io_object_base<Mutex>>		_out;
+		std::unique_ptr<basic_io_stream<Mutex>>		_in;
+		std::unique_ptr<basic_io_stream<Mutex>>		_out;
 	};
 
 	using pipe = basic_pipe<std::mutex>;

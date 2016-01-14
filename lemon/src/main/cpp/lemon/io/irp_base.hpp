@@ -7,29 +7,44 @@
  */
 #ifndef LEMON_IO_IRP_BASE_HPP
 #define LEMON_IO_IRP_BASE_HPP
-
+#include <system_error>
 #include <lemon/config.h>
+#include <lemon/io/handler.hpp>
 
 namespace lemon { namespace io {
 
 
 	enum class irp_op {
-		read, write, accept, connect
+		read, write
 	};
 
 	struct irp_base 
-#ifdef WIN32
-		: OVERLAPPED
-#endif //WIN32
 	{
+#ifdef WIN32
+		OVERLAPPED										overlapped;
+#endif //WIN32
 		irp_base                                        *next;
 
-		irp_base                                        **prev;
+		irp_base                                        *prev;
 
 		irp_op                                           op;
 
-		irp_base(irp_op o) :next(nullptr), prev(nullptr), op(o)
-		{ }
+		handler											 owner;
+
+		size_t											 bytes_of_trans;
+
+		std::error_code									 error_code;
+
+		void											(*fire)(irp_base* irp);
+
+		void											(*close)(irp_base* irp);
+
+		irp_base(handler owner,irp_op o) :next(nullptr), prev(nullptr), op(o),owner(owner)
+		{
+#ifdef WIN32
+			memset(&overlapped, 0, sizeof(OVERLAPPED));
+#endif //WIN32
+		}
 	};
 
 }}

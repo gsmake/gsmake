@@ -92,7 +92,7 @@ namespace lemoon{namespace log{
 		return 0;
 	}
 
-    int lua_log_close(lua_State *L)
+    int lua_log_close(lua_State *)
     {
         lemon::log::close();
 

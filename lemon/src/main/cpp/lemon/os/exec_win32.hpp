@@ -11,10 +11,13 @@
 
 
 #include <lemon/config.h>
+#include <lemon/io/io.hpp>
 #include <lemon/fs/fs.hpp>
 #include <lemon/nocopy.hpp>
 #include <lemon/log/log.hpp>
 #include <lemon/nocopy.hpp>
+#include <lemon/os/exec_options.hpp>
+#include <lemon/io/io_errors.hpp>
 #include <lemon/os/args_convert.hpp>
 
 namespace lemon {
@@ -23,10 +26,15 @@ namespace lemon {
 		class process : private  nocopy
 		{
 		public:
-			process(const std::string & path)
-				:_path(path), _workpath(fs::current_path()), _logger(lemon::log::get("process"))
+			process(const std::string & path,HANDLE in,HANDLE out,HANDLE err)
+				:_path(path)
+				,_workpath(fs::current_path())
+				,_logger(lemon::log::get("process"))
+				,_in(in)
+				,_out(out)
+				,_err(err)
 			{
-
+				
 			}
 
 			void start(std::error_code & err, const std::vector<std::string> & args) noexcept
@@ -46,6 +54,20 @@ namespace lemon {
 				HANDLE stdoutHandler = GetStdHandle(STD_OUTPUT_HANDLE);
 				HANDLE stderrHandler = GetStdHandle(STD_ERROR_HANDLE);
 
+				if(_in)
+				{
+					stdinHandler = _in;
+				}
+
+				if (_out)
+				{
+					stdoutHandler = _out;
+				}
+
+				if (_err)
+				{
+					stderrHandler = _err;
+				}
 
 				std::wstringstream stream;
 
@@ -79,7 +101,7 @@ namespace lemon {
 				si.hStdError = stderrHandler;
 				si.hStdOutput = stdoutHandler;
 				si.hStdInput = stdinHandler;
-				si.dwFlags |= STARTF_USESTDHANDLES;
+				si.dwFlags |= STARTF_USESTDHANDLES | FILE_FLAG_OVERLAPPED;
 
 				if (!::CreateProcessW(
 					NULL,
@@ -137,6 +159,9 @@ namespace lemon {
 			fs::filepath                                    _workpath;
 			std::unordered_map<std::string, std::string >    _env;
 			const lemon::log::logger                        &_logger;
+			HANDLE											_in;
+			HANDLE											_out;
+			HANDLE											_err;
 		};
 
 

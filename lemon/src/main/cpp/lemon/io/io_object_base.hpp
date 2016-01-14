@@ -25,7 +25,12 @@ namespace lemon{ namespace io{
 	public:
 
 		io_object_base(basic_io_service<Mutex> & service,handler h) 
-			:_handler(h), _service(service),_readQ(nullptr),_writeQ(nullptr)
+			:_handler(h)
+			,_service(service)
+			,_readQ(nullptr)
+			,_writeQ(nullptr)
+			, _readQ_tail(nullptr)
+			, _writeQ_tail(nullptr)
 		{
 			std::error_code err;
 			service.io_object_register(*this, err);
@@ -46,6 +51,11 @@ namespace lemon{ namespace io{
 			return _handler != 0;
 		}
 
+		basic_io_service<Mutex>& service() const noexcept
+		{
+			return _service;
+		}
+
 		handler get() const
 		{
 			return _handler;
@@ -56,26 +66,27 @@ namespace lemon{ namespace io{
 			_handler = val;
 		}
 
-
 		void add_irp_read(irp_base * irp) noexcept
 		{
-			add_irp(&_readQ, irp);
+			add_irp(&_readQ,&_readQ_tail, irp);
+			irp->owner = get();
 		}
 
 		void remove_irp_read(irp_base *irp) noexcept
 		{
-			remove_irp(&_readQ, irp);
+			remove_irp(&_readQ, &_readQ_tail, irp);
 		}
 
 
 		void add_irp_write(irp_base * irp) noexcept
 		{
-			add_irp(&_writeQ, irp);
+			add_irp(&_writeQ,&_writeQ_tail, irp);
+			irp->owner = get();
 		}
 
 		void remove_irp_write(irp_base *irp) noexcept
 		{
-			remove_irp(&_writeQ, irp);
+			remove_irp(&_writeQ, &_writeQ_tail, irp);
 		}
 
 #ifndef WIN32
@@ -87,49 +98,53 @@ namespace lemon{ namespace io{
 
 	private:
 
-		static void add_irp(irp_base **header, irp_base *irp) noexcept
+		static void add_irp(irp_base **header,irp_base**tail, irp_base *irp) noexcept
 		{
-			if (*header != nullptr)
+			if(*header == nullptr)
 			{
-				irp->prev = (*header)->prev;
-				irp->next = (*header);
-				(*header)->prev = &irp->next;
+				*header = irp;
 			}
-			else
+
+			if(*tail != nullptr)
 			{
-				(*header) = irp;
+				(*tail)->next = irp;
 
-				irp->next = irp;
-
-				irp->prev = &irp->next;
+				irp->prev = (*tail);
 			}
+
+			*tail = irp;
 		}
 
-		static void remove_irp(irp_base **header, irp_base *irp) noexcept
+		static void remove_irp(irp_base ** header, irp_base**tail, irp_base *irp) noexcept
 		{
-			if (irp == (*header))
+			if(*header == irp)
 			{
-				(*header) = nullptr;
+				*header = irp->next;
 			}
-			else
-			{
-				if (irp->next != nullptr)
-				{
-					irp->next->prev = irp->prev;
-				}
 
-				if (irp->prev != nullptr)
-				{
-					*irp->prev = irp->next;
-				}
+			if(*tail == irp)
+			{
+				*tail = irp->prev;
+			}
+
+			if(irp->prev != nullptr)
+			{
+				irp->prev->next = irp->next;
+			}
+
+			if (irp->next != nullptr)
+			{
+				irp->next->prev = irp->prev;
 			}
 		}
 	private:
 
-		handler	_handler;
+		handler										_handler;
 
 		irp_base                                    *_readQ;
 		irp_base                                    *_writeQ;
+		irp_base                                    *_readQ_tail;
+		irp_base                                    *_writeQ_tail;
 
 		basic_io_service<Mutex>						&_service;
 	};

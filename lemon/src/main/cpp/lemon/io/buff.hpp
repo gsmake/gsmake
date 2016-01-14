@@ -2,6 +2,7 @@
 #define LEMON_IO_BUFF_HPP
 
 #include <cstddef>
+#include <cstring>
 
 namespace lemon{ namespace io{
 
@@ -15,12 +16,6 @@ namespace lemon{ namespace io{
 	{
 		const void		    *data;
 		std::size_t			length;
-
-		const_buffer(buffer buff)
-		{
-			data	= buff.data;
-			length	= buff.length;
-		}
 	};
 
     template<size_t N>
@@ -28,6 +23,19 @@ namespace lemon{ namespace io{
     {
         return {source,N};
     }
+
+	template<size_t N>
+	inline const_buffer cbuff(const char(&source)[N])
+	{
+		return{ source,N };
+	}
+
+	inline const_buffer cbuff(const char * source)
+	{
+		return { source,strlen(source) };
+	}
+
+	
 }}
 
 #endif //LEMON_IO_BUFF_HPP

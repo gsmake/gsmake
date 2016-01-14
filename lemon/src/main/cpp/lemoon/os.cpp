@@ -6,11 +6,17 @@
 
 #include "lemoon.h"
 
+#include <cassert>
 
+#include <lemon/log/log.hpp>
+
+auto & logger = lemon::log::get("lemoon");
 
 #define EXEC_CLASS_NAME "__lemoon_exec"
 
 namespace lemoon { namespace os{
+
+	using namespace lemon::os;
 
     int hostname(lua_State *L)
     {
@@ -99,10 +105,51 @@ namespace lemoon { namespace os{
 		return 1;
 	}
 
+	class command : public lemon::os::exec
+	{
+	public:
+		command(const std::string & name, lemon::os::exec_options options)
+			:command(name, options, LUA_NOREF)
+		{
+
+		}
+		command(const std::string & name, lemon::os::exec_options options,int out)
+			:exec(name,options),_out(out)
+		{
+
+		}
+
+		void callback(lua_State *L,const std::string & message)
+		{
+			if(_out != LUA_NOREF)
+			{
+				lua_rawgeti(L, LUA_REGISTRYINDEX, _out);
+
+				assert(lua_type(L, -1) == LUA_TFUNCTION);
+
+				lua_pushstring(L, message.c_str());
+
+				if (0 != lua_pcall(L, 1, 0, 0))
+				{
+					lemonE(logger, "call exec output callback function error :%s",lua_tostring(L,-1));
+				}
+			}
+		}
+
+		void close(lua_State *L)
+		{
+			if(_out != LUA_NOREF)
+			{
+				luaL_unref(L, LUA_REGISTRYINDEX, _out);
+			}
+		}
+
+	private:
+		int					_out;
+	};
+
     int lua_exec_start(lua_State *L)
     {
-        using command = lemon::os::exec;
-
         auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
         std::vector<std::string> args;
@@ -133,8 +180,6 @@ namespace lemoon { namespace os{
 
     int lua_exec_wait(lua_State *L)
     {
-        using command = lemon::os::exec;
-
         auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
         lua_pushinteger(L,cmd->wait());
@@ -144,9 +189,7 @@ namespace lemoon { namespace os{
 
     int exec_dir(lua_State *L)
     {
-        using command = lemon::os::exec;
-
-        auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
+		auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
         cmd->work_path(luaL_checkstring(L,2));
 
@@ -162,22 +205,75 @@ namespace lemoon { namespace os{
 
     int lua_exec_close(lua_State *L)
     {
-        using command = lemon::os::exec;
-
         auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
-        cmd->~command();
+		cmd->close(L);
+
+		cmd->~command();
 
         return 0;
     }
 
+	void lua_exec_out_callback(lua_State *L,command * c)
+	{
+
+		static char recv_buff[1024];
+
+		c->out().read(lemon::io::buff(recv_buff), [=](size_t trans, const std::error_code &err) {
+
+			if (!err)
+			{
+				c->callback(L,std::string(recv_buff,recv_buff + trans));
+				lua_exec_out_callback(L,c);
+
+				return;
+			}
+		});
+	}
+
+	void lua_exec_err_callback(lua_State *L, command * c)
+	{
+
+		static char recv_buff[1024];
+
+		c->err().read(lemon::io::buff(recv_buff), [=](size_t trans, const std::error_code &err) {
+
+			if (!err)
+			{
+				c->callback(L, std::string(recv_buff, recv_buff + trans));
+				lua_exec_err_callback(L, c);
+
+				return;
+			}
+		});
+	}
+
     int lua_exec(lua_State *L)
     {
-        using command = lemon::os::exec;
+		using namespace lemon::os;
 
         auto buff = lua_newuserdata(L,sizeof(command));
 
-        new(buff) command(luaL_checkstring(L,1));
+		exec_options options = exec_options::none;
+
+		int callback = LUA_NOREF;
+
+		if (lua_type(L, 2) == LUA_TFUNCTION)
+		{
+			options = exec_options((int)exec_options::pipe_error | (int)exec_options::pipe_out);
+
+			lua_pushvalue(L, 2);
+			callback = luaL_ref(L, LUA_REGISTRYINDEX);
+		}
+
+        auto cmd = new(buff) command(luaL_checkstring(L,1), options,callback);
+
+		if (lua_type(L, 2) == LUA_TFUNCTION)
+		{
+			lua_exec_out_callback(L, cmd);
+
+			lua_exec_err_callback(L, cmd);
+		}
 
         if (luaL_newmetatable(L, EXEC_CLASS_NAME)) {
             lua_newtable(L);

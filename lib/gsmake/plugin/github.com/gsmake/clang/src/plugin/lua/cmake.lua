@@ -5,6 +5,7 @@ local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
 local logger    = class.new("lemoon.log","gsmake")
+local console    = class.new("lemoon.log","console")
 
 local module = {}
 -- create new cmake plugin executor
@@ -215,7 +216,13 @@ function module:cmakegen ()
         fs.mkdir(cmake_build_dir,true)
     end
 
-    local exec = sys.exec(self.cmake_path)
+    local owner = self.task.Owner
+    console:I("generate cmake project for [%s:%s] ...",owner.Name,owner.Version)
+    logger:I("generate cmake project for [%s:%s] ...",owner.Name,owner.Version)
+
+    local exec = sys.exec(self.cmake_path,function(msg)
+        logger:I("%s",msg)
+    end)
     exec:dir(cmake_build_dir)
 
     local config = self.owner.Lake.Config
@@ -226,17 +233,30 @@ function module:cmakegen ()
     end
 
     exec:wait()
+
+    console:I("generate cmake project for [%s:%s] -- success",owner.Name,owner.Version)
+    logger:I("generate cmake project for [%s:%s] -- success",owner.Name,owner.Version)
 end
 
 function module:compile ()
     local cmake_root_dir = self.cmake_root_dir
     local cmake_build_dir = filepath.join(cmake_root_dir,".build")
 
-    local exec = sys.exec(self.cmake_path)
+    local owner = self.task.Owner
+    console:I("build cmake project for [%s:%s] ...",owner.Name,owner.Version)
+    logger:I("build cmake project for [%s:%s] ...",owner.Name,owner.Version)
+
+    local exec = sys.exec(self.cmake_path,function(msg)
+        logger:I("%s",msg)
+    end)
     exec:dir(cmake_build_dir)
 
     exec:start("--build",".")
     exec:wait()
+
+    local owner = self.task.Owner
+    console:I("build cmake project for [%s:%s] -- success",owner.Name,owner.Version)
+    logger:I("build cmake project for [%s:%s] -- success",owner.Name,owner.Version)
 end
 
 function module:install (install_path)

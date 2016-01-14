@@ -28,7 +28,51 @@ test_(lookup) {
 
 }
 
+void out_print(exec & c)
+{
+
+	static char recv_buff[1024];
+
+	c.out().read(lemon::io::buff(recv_buff),[&](size_t trans, const std::error_code &err){
+
+		if(!err)
+		{
+			lemonI(lemon::log::get("test"), "%s", std::string(recv_buff, recv_buff + trans).c_str());
+
+			out_print(c);
+
+			return;
+		}
+
+		lemonE(lemon::log::get("test"), "%s", err.message().c_str());
+	});
+}
+
+void err_print(exec & c)
+{
+
+	static char recv_buff[1024];
+
+	c.err().read(lemon::io::buff(recv_buff), [&](size_t trans, const std::error_code &err) {
+
+		if (!err)
+		{
+			lemonI(lemon::log::get("test"), "%s", std::string(recv_buff, recv_buff + trans).c_str());
+
+			err_print(c);
+
+			return;
+		}
+
+		lemonE(lemon::log::get("test"), "%s", err.message().c_str());
+	});
+}
+
 
 test_(command) {
-    exec("netstat").run("-an");
+	exec c("netstat", exec_options((int)exec_options::pipe_in | (int)exec_options::pipe_out)) ;
+
+	out_print(c);
+
+	c.run("-an");
 }

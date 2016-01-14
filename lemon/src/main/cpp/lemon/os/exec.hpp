@@ -8,6 +8,8 @@
 #include <system_error>
 #include <unordered_map>
 #include <lemon/fs/fs.hpp>
+#include <lemon/io/io.hpp>
+#include <lemon/os/exec_options.hpp>
 #include <lemon/os/os_errors.hpp>
 #include <lemon/os/sysinfo.hpp>
 
@@ -46,22 +48,87 @@ namespace lemon{ namespace os{
      */
     const std::unordered_map<std::string,std::string>& process_env(process & proc);
 
-
-
     class exec
     {
     public:
         exec(const std::string & name)
+			:exec(name,exec_options::none)
         {
-            auto found = lookup(name);
-
-            if(!std::get<1>(found))
-            {
-                throw std::system_error((int)errc::command_not_found,os_error_category());
-            }
-
-            _impl.reset(new process(std::get<0>(found)));
+          
         }
+
+		exec(const std::string & name, exec_options options)
+			:_closed(false)
+		{
+			auto found = lookup(name);
+
+			if (!std::get<1>(found))
+			{
+				throw std::system_error((int)errc::command_not_found, os_error_category());
+			}
+
+			if (((int)options & (int)exec_options::pipe_in))
+			{
+				_in.reset(new io::pipe_s(_ioservice));
+			}
+
+			if (((int)options & (int)exec_options::pipe_out))
+			{
+				_out.reset(new io::pipe_s(_ioservice));
+			}
+
+			if (((int)options & (int)exec_options::pipe_error))
+			{
+				_err.reset(new io::pipe_s(_ioservice));
+			}
+
+			if (exec_options::none != options)
+			{
+				_dispatcher = std::thread([&] {
+					while (!_closed)
+					{
+						std::error_code err;
+						_ioservice.dispatch_once(err);
+
+						if (err)
+						{
+							if (err == io::errc::io_service_closed)
+							{
+								break;
+							}
+						}
+					}
+
+					for (;;)
+					{
+						std::error_code err;
+						_ioservice.dispatch_once(std::chrono::system_clock::duration(),err);
+
+						if (err && err == std::errc::timed_out)
+						{
+							break;
+						}
+					}
+				});
+			}
+
+			_impl.reset(new process(
+				std::get<0>(found),
+				_in?_in->in().get():NULL,
+				_out?_out->out().get():NULL,
+				_err?_err->out().get():NULL));
+		}
+
+		~exec()
+		{
+			_closed = true;
+			_ioservice.notify_all();
+			if(_dispatcher.joinable())
+			{
+				_dispatcher.join();
+			}
+			
+		}
 
         void work_path(const fs::filepath & path)
         {
@@ -113,8 +180,31 @@ namespace lemon{ namespace os{
             return wait();
         }
 
+		io::io_stream_s& in() const
+		{
+			return _in->out();
+		}
+
+		io::io_stream_s& out() const
+		{
+			return _out->in();
+		}
+
+		io::io_stream_s& err() const
+		{
+			return _err->in();
+		}
+
+
     private:
-        std::unique_ptr<process>      _impl;
+		std::atomic<bool>				_closed;
+        std::unique_ptr<process>		_impl;
+		std::thread						_dispatcher;
+		io::io_service_s				_ioservice;
+		std::unique_ptr<io::pipe_s>		_in;
+		std::unique_ptr<io::pipe_s>		_out;
+		std::unique_ptr<io::pipe_s>		_err;
+
     };
 
 }}
