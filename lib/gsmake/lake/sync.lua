@@ -80,7 +80,7 @@ function module:sync(name,version)
     local path,ok = self.db:query_source(name,version)
 
     if ok and fs.exists(path) then
-        logger:I("sync package[%s：%s] -- success\n\tdir :%s",name,version,path)
+        logger:I("sync package[%s:%s] -- success\n\tdir :%s",name,version,path)
         return path
     end
 
