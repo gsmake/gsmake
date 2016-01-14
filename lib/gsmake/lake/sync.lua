@@ -71,7 +71,7 @@ end
 
 function module:sync(name,version)
 
-    logger:I("sync package[%s：%s] ...",name,version)
+    logger:I("sync package[%s:%s] ...",name,version)
 
     if version == nil then
         version = self.lake.Config.GSMAKE_DEFAULT_VERSION
