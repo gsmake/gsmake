@@ -81,7 +81,7 @@ function module:setup()
 
         local ok = self.db:query_install(package.Name,package.Version)
 
-        if not ok or not fs.isdir(plugin.Path) then -- link plugin
+        -- if not ok or not fs.isdir(plugin.Path) then -- link plugin
 
             logger:D(
                 "[%s:%s] install plugin [%s:%s] ...\n\tinstall dir :%s",
@@ -95,7 +95,7 @@ function module:setup()
                 "[%s:%s] install plugin [%s:%s] -- success\n\tinstall dir :%s",
                 self.Name,self.Version,plugin.Name,plugin.Version,plugin.InstallDir)
 
-        end
+        -- end
 
         plugin:setup()
 

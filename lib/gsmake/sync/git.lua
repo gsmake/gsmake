@@ -3,10 +3,12 @@ local url = require "lemoon.url"
 local sys = require "lemoon.sys"
 local uuid = require "lemoon.uuid"
 local class = require "lemoon.class"
+local throw = require "lemoon.throw"
 local filepath = require "lemoon.filepath"
 
 -- cached logger
-local logger = class.new("lemoon.log","lake")
+local logger = class.new("lemoon.log","gsmake")
+local console = class.new("lemoon.log","console")
 
 local module = {}
 function module.ctor(lake,name,version)
@@ -14,7 +16,7 @@ function module.ctor(lake,name,version)
     local ok,path = sys.lookup("git")
 
     if not ok then
-        error("git tool not found. you need manual install it :https://git-scm.com/ ")
+        throw("git tool not found. you need manual install it :https://git-scm.com/ ")
     end
 
     logger:D("found git tool :'%s'",path)
@@ -37,6 +39,8 @@ end
 
 function module:sync_remote(remote)
 
+    console:I("clone package [%s:%s] from %s",self.name,self.version,remote)
+
     local workdir = filepath.join(self.lake.Config.GSMAKE_REPO,"git",self.name)
 
     if not fs.exists(workdir) then
@@ -56,7 +60,9 @@ function module:sync_remote(remote)
 
         local tmpname = uuid.gen()
 
-        local exec = sys.exec(self.exe)
+        local exec = sys.exec(self.exe,function(msg)
+            logger:I("%s",msg)
+        end)
 
         local tmppath = filepath.join(sys.tmpdir(),tmpname)
 
@@ -66,7 +72,7 @@ function module:sync_remote(remote)
         exec:start("clone","--mirror",remote,tmpname)
 
         if exec:wait() ~= 0 then
-            error(string.format("clone git repo from %s -- failed",remote))
+            throw("clone git repo from %s -- failed",remote)
         end
 
         logger:D("git sync:\n\tsource :%s\n\ttarget: %s",tmppath,target)
@@ -75,13 +81,11 @@ function module:sync_remote(remote)
             fs.rm(target,true)
         end
 
-        local exec = sys.exec(self.exe)
-
         exec:dir(workdir)
         exec:start("clone","--mirror",tmppath,repo)
 
         if exec:wait() ~= 0 then
-            error(string.format("clone git repo from %s -- failed",tmppath))
+            throw("clone git repo from %s -- failed",tmppath)
         end
 
     end
@@ -94,13 +98,15 @@ function module:sync_remote(remote)
         fs.rm(sourceTarget,true)
     end
 
-    local exec = sys.exec(self.exe)
+    local exec = sys.exec(self.exe,function(msg)
+        logger:I("%s",msg)
+    end)
 
     exec:dir(workdir)
     exec:start("clone",target,self.version)
 
     if exec:wait() ~= 0 then
-        error(string.format("clone git repo from %s -- failed",target))
+        throw("clone git repo from %s -- failed",target)
     end
 
     local version = self.version
@@ -109,17 +115,18 @@ function module:sync_remote(remote)
         version = "master"
     end
 
-    local exec = sys.exec(self.exe)
     exec:dir(sourceTarget)
     exec:start("checkout",version)
 
     if exec:wait() ~= 0 then
-        error(string.format("git repo(%s) checkout %s -- failed",sourceTarget,version))
+        throw("git repo(%s) checkout %s -- failed",sourceTarget,version)
     end
 
     self.db:save_sync(self.name,self.version,remote,target,"git")
 
     self.db:save_source(self.name,self.version,target,sourceTarget)
+
+    console:I("clone package [%s:%s] from %s -- success",self.name,self.version,remote)
 
 end
 

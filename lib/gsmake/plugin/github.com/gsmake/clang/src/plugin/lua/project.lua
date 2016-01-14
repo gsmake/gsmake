@@ -4,6 +4,7 @@ local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 
 local logger    = class.new("lemoon.log","gsmake")
+local console    = class.new("lemoon.log","console")
 
 local module = {}
 
@@ -76,6 +77,13 @@ function module:link(projects)
             package:link()
             -- setup package
             package:setup()
+
+            console:I("install external package [%s:%s] :%s",package.Name,package.Version,package.Path)
+
+            class.new("lake",package.Path):run("install",self.outputdir)
+
+            console:I("install external package [%s:%s] -- success",package.Name,package.Version,package.Path)
+
 
             -- TODO: execute package install task
             -- TODO: add proj to linked table
