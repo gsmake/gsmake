@@ -29,8 +29,12 @@ namespace lemon{ namespace log{
 		va_start(args,fmt);
 
 #ifdef WIN32
-		char buff[10240];
-		int len = vsnprintf_s(buff, sizeof(buff), fmt, args);
+		
+		int len = vsnprintf_s(NULL,0,0, fmt, args);
+
+		char *buff = new char[len];
+
+		vsnprintf_s(buff, len, len, fmt, args);
 #else
 		char *buff;
 		int len = vasprintf(&buff, fmt, args);
@@ -39,7 +43,9 @@ namespace lemon{ namespace log{
 
 		source.write(l, std::string(buff, buff + len), file, lines);
 
-#ifndef WIN32
+#ifdef WIN32
+		delete buff;
+#else
 		free(buff);
 #endif //WIN32
 	}

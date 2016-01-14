@@ -224,8 +224,8 @@ function module:cmakegen ()
     end
 
     local owner = self.task.Owner
-    console:I("generate cmake project for [%s:%s] ...",owner.Name,owner.Version)
-    logger:I("generate cmake project for [%s:%s] ...",owner.Name,owner.Version)
+    console:I("generate cmake project [%s:%s] ...",owner.Name,owner.Version)
+    logger:I("generate cmake project [%s:%s] ...",owner.Name,owner.Version)
 
     local exec = sys.exec(self.cmake_path,function(msg)
         logger:I("%s",msg)
@@ -241,8 +241,8 @@ function module:cmakegen ()
 
     exec:wait()
 
-    console:I("generate cmake project for [%s:%s] -- success",owner.Name,owner.Version)
-    logger:I("generate cmake project for [%s:%s] -- success",owner.Name,owner.Version)
+    console:I("generate cmake project [%s:%s] -- success",owner.Name,owner.Version)
+    logger:I("generate cmake project [%s:%s] -- success",owner.Name,owner.Version)
 end
 
 function module:compile ()
@@ -250,8 +250,8 @@ function module:compile ()
     local cmake_build_dir = filepath.join(cmake_root_dir,".build")
 
     local owner = self.task.Owner
-    console:I("build cmake project for [%s:%s] ...",owner.Name,owner.Version)
-    logger:I("build cmake project for [%s:%s] ...",owner.Name,owner.Version)
+    console:I("build cmake project [%s:%s] ...",owner.Name,owner.Version)
+    logger:I("build cmake project [%s:%s] ...",owner.Name,owner.Version)
 
     local exec = sys.exec(self.cmake_path,function(msg)
         logger:I("%s",msg)
@@ -262,8 +262,8 @@ function module:compile ()
     exec:wait()
 
     local owner = self.task.Owner
-    console:I("build cmake project for [%s:%s] -- success",owner.Name,owner.Version)
-    logger:I("build cmake project for [%s:%s] -- success",owner.Name,owner.Version)
+    console:I("build cmake project [%s:%s] -- success",owner.Name,owner.Version)
+    logger:I("build cmake project [%s:%s] -- success",owner.Name,owner.Version)
 end
 
 function module:install (install_path)
