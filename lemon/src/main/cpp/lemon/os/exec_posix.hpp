@@ -5,12 +5,6 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#include <string>
-#include <thread>
-#include <utility>
-#include <iostream>
-#include <unordered_map>
-
 
 #include <lemon/config.h>
 #include <lemon/fs/fs.hpp>
@@ -19,12 +13,18 @@
 #include <lemon/nocopy.hpp>
 #include <lemon/os/args_convert.hpp>
 
+#include <string>
+#include <thread>
+#include <utility>
+#include <iostream>
+#include <unordered_map>
+
 namespace lemon{ namespace os{
 
     class process : private  nocopy
     {
     public:
-        process(const std::string & path)
+        process(const std::string & path,int in,int out,int err)
             :_path(path),_workpath(fs::current_path()),_logger(lemon::log::get("process"))
         {
 

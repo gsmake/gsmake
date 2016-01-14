@@ -101,10 +101,11 @@ namespace lemon{ namespace io{
 #ifdef WIN32
 			auto result = io_service_dispatch(*_impl, timeout, err);
 #else
+			io_service_poll(*_impl,timeout,err);
 #endif //WIN32
 
 			_blocks--;
-
+#ifdef WIN32
 			if(std::get<0>(result))
 			{
 				auto irp = std::get<1>(result);
@@ -129,6 +130,7 @@ namespace lemon{ namespace io{
 
 				irp->close(irp);
 			}
+#endif //WIN32
 		}
 
 		void dispatch_once(std::error_code & err)

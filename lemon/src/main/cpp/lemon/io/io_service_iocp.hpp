@@ -81,7 +81,7 @@ namespace lemon { namespace io {
 
 			if (ERROR_ABANDONED_WAIT_0 == lasterror)
 			{
-				err = std::make_error_code(errc::io_service_closed);
+				err = make_error_code(errc::io_service_closed);
 			}
 			else if (WAIT_TIMEOUT != lasterror)
 			{

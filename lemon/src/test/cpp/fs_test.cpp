@@ -2,8 +2,6 @@
 #include <lemon/log/log.hpp>
 #include <lemon/test/test.hpp>
 
-#include <filesystem>
-
 using namespace lemon::fs;
 using namespace lemon::log;
 

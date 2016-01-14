@@ -1,4 +1,4 @@
-#include <iostream>
+
 
 #include <lua/lua.hpp>
 
@@ -8,7 +8,6 @@
 
 #include <cassert>
 
-#include <lemon/log/log.hpp>
 
 auto & logger = lemon::log::get("lemoon");
 

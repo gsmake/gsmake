@@ -1,19 +1,24 @@
 #ifndef LEMON_OS_EXEC_HPP
 #define LEMON_OS_EXEC_HPP
 
-
+#include <thread>
 #include <vector>
 #include <memory>
 #include <utility>
-#include <system_error>
 #include <unordered_map>
 #include <lemon/fs/fs.hpp>
 #include <lemon/io/io.hpp>
+
+
+
 #include <lemon/os/exec_options.hpp>
 #include <lemon/os/os_errors.hpp>
 #include <lemon/os/sysinfo.hpp>
 
+using namespace std;
+
 namespace lemon{ namespace os{
+
 
     class process;
 
@@ -84,7 +89,7 @@ namespace lemon{ namespace os{
 
 			if (exec_options::none != options)
 			{
-				_dispatcher = std::thread([&] {
+				auto call = [&](){
 					while (!_closed)
 					{
 						std::error_code err;
@@ -92,7 +97,7 @@ namespace lemon{ namespace os{
 
 						if (err)
 						{
-							if (err == io::errc::io_service_closed)
+							if (err == lemon::io::errc::io_service_closed )
 							{
 								break;
 							}
@@ -109,14 +114,17 @@ namespace lemon{ namespace os{
 							break;
 						}
 					}
-				});
+				};
+
+
+				_dispatcher = std::thread(call);
 			}
 
 			_impl.reset(new process(
 				std::get<0>(found),
-				_in?_in->in().get():NULL,
-				_out?_out->out().get():NULL,
-				_err?_err->out().get():NULL));
+				_in?_in->in().get():io::handler(),
+				_out?_out->out().get():io::handler(),
+				_err?_err->out().get():io::handler()));
 		}
 
 		~exec()

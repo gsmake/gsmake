@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <sstream>
 #include <lemon/log/sink.hpp>
 #include <lemon/log/factory.hpp>
