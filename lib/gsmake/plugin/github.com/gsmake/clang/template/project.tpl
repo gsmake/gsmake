@@ -15,9 +15,13 @@ foreach(flag_var CMAKE_C_FLAGS
 endforeach(flag_var)
 @{{ end }}
 
+include_directories(@{{external_include}})
+link_libraries(@{{external_libs}})
 
 @{{ for _,project in pairs(projects or {}) do }}
+@{{ if not project.External then }}
 add_subdirectory(@{{project.Name}})
+@{{ end }}
 @{{ end }}
 
 @{{ for _,project in pairs(tests or {}) do }}

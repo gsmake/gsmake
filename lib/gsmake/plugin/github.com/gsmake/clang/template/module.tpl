@@ -10,9 +10,11 @@ include_directories(
 @{{ end }}
 
 @{{ for _,dep in ipairs(Linked) do }}
+@{{ if not dep.External then }}
 @{{ for _,src in ipairs(dep.SrcDirs) do }}
 @{{src}}
 
+@{{ end }}
 @{{ end }}
 @{{ end }}
 )

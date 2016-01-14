@@ -29,7 +29,7 @@ namespace lemon{ namespace log{
 		va_start(args,fmt);
 
 #ifdef WIN32
-		char buff[2048];
+		char buff[10240];
 		int len = vsnprintf_s(buff, sizeof(buff), fmt, args);
 #else
 		char *buff;

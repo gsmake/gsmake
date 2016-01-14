@@ -48,23 +48,32 @@ namespace lemoon{namespace log{
 
 		lemon::log::file_sink* filesink;
 
-		if(sources.empty())
+		try
 		{
-			filesink = new file_sink(luaL_checkstring(L, 2), luaL_checkstring(L, 3));
+			if (sources.empty())
+			{
+				filesink = new file_sink(luaL_checkstring(L, 2), luaL_checkstring(L, 3));
+			}
+			else
+			{
+				std::regex regex("\\s+");
+				std::sregex_token_iterator first{ sources.begin(), sources.end(), regex, -1 }, last;
+
+				filesink = new file_sink({ first, last }, luaL_checkstring(L, 2), luaL_checkstring(L, 3));
+			}
+
+			filesink->time_suffix(false);
+
+			lemon::log::add_sink(std::unique_ptr<sink>(filesink));
+
+			return 0;
 		}
-		else
+		catch(std::system_error & e)
 		{
-			std::regex regex("\\s+");
-			std::sregex_token_iterator first{ sources.begin(), sources.end(), regex, -1 },last;
-
-			filesink = new file_sink({ first, last },luaL_checkstring(L, 2), luaL_checkstring(L, 3));
+			return luaL_error(L, e.what());
 		}
+	
 
-		filesink->time_suffix(false);
-
-		lemon::log::add_sink(std::unique_ptr<sink>(filesink));
-		
-		return 0;
 	}
 
 	int lua_console_sink(lua_State *L)

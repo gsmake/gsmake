@@ -74,10 +74,15 @@ function module:loadproject (name, config)
         config["source_files"] =  { "*.c","*.cpp","*.cxx","*.cc" }
     end
 
+    if config["path"] == nil then
+        config["path"] = name
+    end
+
     local srcDirs = {}
+    local path = config["path"]
 
     for _,dir in ipairs(config["src"]) do
-        table.insert(srcDirs,filepath.toslash(filepath.join(self.owner.Path,name,dir)));
+        table.insert(srcDirs,filepath.toslash(filepath.join(self.owner.Path,path,dir)));
     end
 
     local project = class.new("project",{
@@ -100,7 +105,7 @@ function module:loadproject (name, config)
        local testDirs = {}
 
        for _,dir in ipairs(config["test"]) do
-           table.insert(testDirs,filepath.toslash(filepath.join(self.owner.Path,name,dir)));
+           table.insert(testDirs,filepath.toslash(filepath.join(self.owner.Path,path,dir)));
        end
 
        local test = class.new("project",{
@@ -155,10 +160,12 @@ function module:gen_cmake_files ()
     local cmake_root_file = filepath.join(self.cmake_root_dir,"CMakeLists.txt")
 
     codegen:render(cmake_root_file,"project.tpl",{
-        name            = filepath.base(task.Owner.Name);
-        projects        = self.projects;
-        tests           = self.tests;
-        target_host     = self.task.Lake.Config.GSMAKE_TARGET_HOST;
+        name                    = filepath.base(task.Owner.Name);
+        external_include        = filepath.join(self.outputdir,"include");
+        external_libs           = filepath.join(self.outputdir,"lib");
+        projects                = self.projects;
+        tests                   = self.tests;
+        target_host             = self.task.Lake.Config.GSMAKE_TARGET_HOST;
     })
 
     for _,project in pairs(self.projects) do

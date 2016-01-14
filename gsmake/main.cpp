@@ -67,9 +67,10 @@ int main(int args, char** argv) {
 	auto& logger = lemon::log::get("gsmake");
 
     if (0 != lua_pcall(L, 0, 0, 0)) {
+		std::string err = lua_tostring(L, -1);
 
-        lemonE(logger,"panic:\n\t%s", lua_tostring(L, -1));
-		lemonE(console, "panic:\n\t%s", lua_tostring(L, -1));
+        lemonE(logger,"panic:\n\t%s", err.c_str());
+		lemonE(console, "panic:\n\t%s", err.c_str());
 		lemonE(console, "for more details, check the log files in directory: ${WORKSPACE}/.gsmake/log");
 
         lemon::log::close();
@@ -81,8 +82,10 @@ int main(int args, char** argv) {
 
     if (0 != lua_pcall(L, 0, 0, 0)) {
 
-		lemonE(logger, "panic:\n\t%s", lua_tostring(L, -1));
-		lemonE(console, "panic:\n\t%s", lua_tostring(L, -1));
+		std::string err = lua_tostring(L, -1);
+
+		lemonE(logger, "panic:\n\t%s", err.c_str());
+		lemonE(console, "panic:\n\t%s", err.c_str());
 		lemonE(console, "for more details, check the log files in directory: ${WORKSPACE}/.gsmake/log");
 
         lemon::log::close();
