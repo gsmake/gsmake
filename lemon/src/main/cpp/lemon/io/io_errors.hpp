@@ -27,6 +27,8 @@ namespace lemon { namespace io {
                 case errc::io_service_closed:
                     return "io service closed";
                 }
+
+				return "unknown";
             }
 
             std::error_condition default_error_condition(int _Errval) const throw()

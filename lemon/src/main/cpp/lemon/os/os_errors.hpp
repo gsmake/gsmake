@@ -24,6 +24,8 @@ namespace lemon{ namespace os{
                 case errc::command_not_found:
                     return "command execute not found";
                 }
+
+				return "unknown";
             }
 
             std::error_condition default_error_condition(int _Errval) const throw()
