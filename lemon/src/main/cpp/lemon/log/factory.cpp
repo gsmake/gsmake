@@ -8,27 +8,22 @@ namespace lemon{ namespace log{
 	factory::factory()
 		:_levels((int)level::all),_exitflag(false)
 	{
-		_writer = std::thread(&factory::writeloop, this);
+		_writer = std::thread(&factory::write_loop, this);
 	}
 
-	void factory::writeloop()
+	void factory::write_loop()
 	{
-		while(!_exitflag)
-		{
-			std::unique_lock<std::mutex> lock(_mutex);
 
+		std::unique_lock<std::mutex> lock(_mutex);
+
+		for(;;)
+		{
 			if(_messages.empty())
 			{
-				if (_exitflag) break; // exit
-
 				_notify.wait(lock);
-
-				continue;
 			}
 
 			auto messages = std::move(_messages);
-
-			_messages.clear();
 
 			lock.unlock();
 
@@ -42,26 +37,11 @@ namespace lemon{ namespace log{
 					}
 				}
 			}
+
+			lock.lock();
+
+			if(_exitflag) break;
 		}
-
-		std::unique_lock<std::mutex> lock(_mutex);
-
-		auto messages = std::move(_messages);
-
-		lock.unlock();
-
-		for (auto& msg : messages)
-		{
-			for (auto s : _sinks)
-			{
-				if (s.second->apply(msg.Source))
-				{
-					s.second->write(msg);
-				}
-			}
-		}
-
-		_exit_notify.notify_one();
 	}
 
 	void factory::write(const message &msg)
@@ -172,15 +152,19 @@ namespace lemon{ namespace log{
 	*/
 	void factory::close()
 	{
-		std::unique_lock<std::mutex> lock(_mutex);
-
-		if(!_exitflag)
 		{
-			_exitflag = true;
+			std::unique_lock<std::mutex> lock(_mutex);
 
-			_notify.notify_one();
+			if(!_exitflag)
+			{
+				_exitflag = true;
 
-			_exit_notify.wait(lock);
+				_notify.notify_one();
+			}
+		}
+
+		if(_writer.joinable()) {
+			_writer.join();
 		}
 	}
 }}

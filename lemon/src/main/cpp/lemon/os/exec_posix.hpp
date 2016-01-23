@@ -25,7 +25,12 @@ namespace lemon{ namespace os{
     {
     public:
         process(const std::string & path,int in,int out,int err)
-            :_path(path),_workpath(fs::current_path()),_logger(lemon::log::get("process"))
+                :_path(path)
+                ,_workpath(fs::current_path())
+                ,_logger(lemon::log::get("process"))
+                ,_stdin(in)
+                ,_stdout(out)
+                ,_stderr(err)
         {
 
         }
@@ -105,6 +110,41 @@ namespace lemon{ namespace os{
 
         void exec(std::error_code & err,const std::vector<std::string> & buff)
         {
+            fs::current_path(_workpath);
+
+            // redirect stdin/stdout/stderr
+
+            if(_stdin)
+            {
+                if (dup2(_stdin, STDIN_FILENO) == -1) {
+                    perror("redirecting stdin");
+                    return;
+                }
+            }
+
+            if(_stdout)
+            {
+                // redirect stdout
+                if (dup2(_stdout, STDOUT_FILENO) == -1) {
+                    perror("redirecting stdout");
+                    return;
+                }
+            }
+
+            if(_stderr)
+            {
+                // redirect stderr
+                if (dup2(_stderr, STDERR_FILENO) == -1) {
+                    perror("redirecting stderr");
+                    return;
+                }
+            }
+
+
+            ::close(_stdin);
+            ::close(_stdout);
+            ::close(_stderr);
+
             const char ** argv = new const char*[buff.size() + 2];
 
             argv[0] = _path.string().c_str();
@@ -137,6 +177,9 @@ namespace lemon{ namespace os{
         fs::filepath                                    _workpath;
         std::unordered_map<std::string,std::string >    _env;
         const lemon::log::logger                        &_logger;
+        int                                             _stdin;
+        int                                             _stdout;
+        int                                             _stderr;
     };
 
 

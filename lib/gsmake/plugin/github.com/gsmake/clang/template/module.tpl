@@ -76,6 +76,11 @@ target_link_libraries(
 @{{dep.Name}}
 
 @{{ end }}
+
+@{{ if TargetHost == "Linux" then}}
+pthread dl
+@{{end}}
+
 )
 @{{ end }}
 

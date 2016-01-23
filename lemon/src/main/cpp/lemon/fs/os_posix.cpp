@@ -3,7 +3,11 @@
 
 #ifndef WIN32
 
+#include <cassert>
+#include <array>
+#include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 
 
 namespace lemon{ namespace fs {
@@ -76,12 +80,68 @@ namespace lemon{ namespace fs {
 
         void copy_file(const filepath & from,const filepath& to,std::error_code & errc) noexcept
         {
+            const static std::size_t buff_size = 40960; // the default buff size is 4k
 
+            std::array<char,buff_size> buff;
+
+            int in =-1, out =-1;  // -1 means not open
+
+            if ((in = ::open(from.string().c_str(), O_RDONLY))< 0)
+            {
+                errc = std::error_code(errno,std::system_category());
+                return;
+            }
+
+            struct stat from_stat;
+            if (::stat(from.string().c_str(), &from_stat)!= 0)
+            {
+                ::close(in);
+                errc = std::error_code(errno,std::system_category());
+                return;
+            }
+
+
+            int out_flag = O_CREAT | O_WRONLY | O_TRUNC | O_EXCL;
+
+            if ((out = ::open(to.string().c_str(), out_flag, from_stat.st_mode))< 0)
+            {
+                errc = std::error_code(errno,std::system_category());
+
+                ::close(in);
+
+                return;
+            }
+
+            ssize_t sz, sz_read=1, sz_write;
+            while (sz_read > 0
+                    && (sz_read = ::read(in, &buff[0], buff.size())) > 0)
+            {
+                sz_write = 0;
+                do
+                {
+                    assert(sz_read - sz_write > 0);  // #1
+
+                    if ((sz = ::write(out, &buff[sz_write], (size_t)(sz_read - sz_write))) < 0)
+                    {
+                        sz_read = sz; // cause read loop termination
+                        break;        //  and error reported after closes
+                    }
+                    assert(sz > 0);                  // #2
+                    sz_write += sz;
+                } while (sz_write < sz_read);
+            }
         }
 
         std::uintmax_t file_size(const filepath& path, std::error_code& ec)
         {
-            return 0;
+            struct stat from_stat;
+            if (::stat(path.string().c_str(), &from_stat)!= 0)
+            {
+                ec = std::error_code(errno,std::system_category());
+                return 0;
+            }
+
+            return (std::uintmax_t)from_stat.st_size;
         }
 
     }

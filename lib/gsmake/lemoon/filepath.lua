@@ -211,9 +211,12 @@ function module.clean(path)
 end
 
 function module.join(...)
+
     local path = module.__join(...)
 
-    return module.clean(path)
+    local path = module.clean(path)
+
+    return path
 end
 
 function module.__join(...)

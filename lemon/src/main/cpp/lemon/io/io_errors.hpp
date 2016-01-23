@@ -55,6 +55,5 @@ namespace lemon { namespace io {
 
 namespace std {
     template<> struct is_error_code_enum<::lemon::io::errc> : true_type {};
-   // template<> struct is_error_condition_enum<::lemon::io::errc> : true_type {};
 }
 #endif //LEMON_IO_ERRORS_HPP

@@ -6,7 +6,6 @@ using namespace lemon::fs;
 using namespace lemon::log;
 
 test_(filename){
-	
 
     test_assert(filepath("/").filename().generic_string() == "/");
     test_assert(filepath("/.").filename().generic_string() == "/");

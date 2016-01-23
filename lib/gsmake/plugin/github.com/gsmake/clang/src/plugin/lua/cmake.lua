@@ -93,6 +93,7 @@ function module:loadproject (name, config)
         SrcDirs                     = srcDirs;
         Deps                        = config["dependencies"] or {};
         Lake                        = lake;
+        TargetHost                  = self.task.Lake.Config.GSMAKE_TARGET_HOST;
         config                      = config["config"];
         header_files                = config["header_files"];
         source_files                = config["source_files"];
@@ -116,6 +117,7 @@ function module:loadproject (name, config)
            SrcDirs                     = testDirs;
            Deps                        = config["test_dependencies"] or {};
            Lake                        = lake;
+           TargetHost                  = self.task.Lake.Config.GSMAKE_TARGET_HOST;
            config                      = config["config"];
            header_files                = config["header_files"];
            source_files                = config["source_files"];
@@ -175,6 +177,7 @@ function module:gen_cmake_files ()
         end
         local cmake_project_file = filepath.join(cmake_project_dir,"CMakeLists.txt")
         logger:I(cmake_project_file)
+
         codegen:render(cmake_project_file,"module.tpl",project)
     end
 
@@ -278,6 +281,7 @@ function module:install (install_path)
         for _,header in ipairs(project.HeaderFiles) do
             local target = header
             for _,srcDir in ipairs(project.SrcDirs) do
+
                 target = target:gsub(srcDir,"")
             end
 
@@ -286,12 +290,20 @@ function module:install (install_path)
             local dir = filepath.dir(target)
 
             if not fs.exists(dir) then
+
                 fs.mkdir(dir,true)
+
             end
 
             fs.copy_file(header,target,fs.update_existing)
+
         end
+        console:I("%s -- success",project.Name)
     end
+
+
+
+
 
     fs.list(self.outputdir,function(entry)
         if entry == "." or entry == ".." then

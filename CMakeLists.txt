@@ -17,7 +17,8 @@ if(WIN32)
 endif()
 
 if(NOT WIN32)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g3")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g3")
 endif()
 
 include_directories(${CMAKE_SOURCE_DIR}/lemon/src/main/cpp)

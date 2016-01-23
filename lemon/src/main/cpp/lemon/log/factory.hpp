@@ -67,7 +67,7 @@ namespace lemon{ namespace log{
 
 	private:
 
-		void writeloop();
+		void write_loop();
 
 	private:
 		int															_levels;
@@ -76,7 +76,6 @@ namespace lemon{ namespace log{
 		std::unordered_map<std::string, std::shared_ptr<sink>>		_sinks;
 		std::atomic<bool>											_exitflag;
 		std::condition_variable_any									_notify;
-		std::condition_variable_any									_exit_notify;
 		std::thread													_writer;
 		std::vector<message>										_messages;
 	};

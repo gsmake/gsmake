@@ -93,6 +93,7 @@ int main(int args, char** argv) {
         return 1;
     }
 
+
     lemon::log::close();
 
     lua_close(L);

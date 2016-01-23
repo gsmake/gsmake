@@ -9,7 +9,7 @@ local function loadScript(script,env)
     local closure,err = loadfile(script,"bt",env)
 
     if err ~= nil then
-        throw("load plugin -- failed,%s",err)
+        throw("load plugin -- failed\n\t%s",err)
     end
 
     return closure()

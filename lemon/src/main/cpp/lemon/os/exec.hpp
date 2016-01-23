@@ -74,17 +74,17 @@ namespace lemon{ namespace os{
 
 			if (((int)options & (int)exec_options::pipe_in))
 			{
-				_in.reset(new io::pipe_s(_ioservice));
+				_in.reset(new io::pipe(_ioservice));
 			}
 
 			if (((int)options & (int)exec_options::pipe_out))
 			{
-				_out.reset(new io::pipe_s(_ioservice));
+				_out.reset(new io::pipe(_ioservice));
 			}
 
 			if (((int)options & (int)exec_options::pipe_error))
 			{
-				_err.reset(new io::pipe_s(_ioservice));
+				_err.reset(new io::pipe(_ioservice));
 			}
 
 			if (exec_options::none != options)
@@ -93,7 +93,7 @@ namespace lemon{ namespace os{
 					while (!_closed)
 					{
 						std::error_code err;
-						_ioservice.dispatch_once(err);
+						_ioservice.run_one(err);
 
 						if (err)
 						{
@@ -107,7 +107,7 @@ namespace lemon{ namespace os{
 					for (;;)
 					{
 						std::error_code err;
-						_ioservice.dispatch_once(std::chrono::system_clock::duration(),err);
+						_ioservice.run_one(std::chrono::system_clock::duration(),err);
 
 						if (err && err == std::errc::timed_out)
 						{
@@ -188,17 +188,17 @@ namespace lemon{ namespace os{
             return wait();
         }
 
-		io::io_stream_s& in() const
+		io::io_stream& in() const
 		{
 			return _in->out();
 		}
 
-		io::io_stream_s& out() const
+		io::io_stream& out() const
 		{
 			return _out->in();
 		}
 
-		io::io_stream_s& err() const
+		io::io_stream& err() const
 		{
 			return _err->in();
 		}
@@ -208,10 +208,10 @@ namespace lemon{ namespace os{
 		std::atomic<bool>				_closed;
         std::unique_ptr<process>		_impl;
 		std::thread						_dispatcher;
-		io::io_service_s				_ioservice;
-		std::unique_ptr<io::pipe_s>		_in;
-		std::unique_ptr<io::pipe_s>		_out;
-		std::unique_ptr<io::pipe_s>		_err;
+		io::io_service					_ioservice;
+		std::unique_ptr<io::pipe>		_in;
+		std::unique_ptr<io::pipe>		_out;
+		std::unique_ptr<io::pipe>		_err;
 
     };
 
