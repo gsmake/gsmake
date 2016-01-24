@@ -14,7 +14,6 @@
 #include <lemon/nocopy.hpp>
 #include <lemon/io/handler.hpp>
 #include <lemon/io/reactor_op.hpp>
-#include "reactor_io_service_epoll.hpp"
 
 namespace lemon{
     namespace io{

@@ -43,19 +43,10 @@ namespace lemon{
                 _complete(this);
             }
 
-            void cancel(const std::error_code &ec)
-            {
-                _ec = ec;
-            }
-
         private:
 
             action_f                    _action;
             complete_f                  _complete;
-
-        protected:
-            std::error_code             _ec;
-            std::size_t                 _bytes_transferred;
         };
     }
 }

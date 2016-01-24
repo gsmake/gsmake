@@ -9,6 +9,7 @@
 #define LEMON_IO_HANDLER_HPP
 
 #include <cstddef>
+#include <lemon/config.h>
 
 namespace lemon{ namespace io{
 #if defined(__APPLE__)

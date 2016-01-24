@@ -18,7 +18,7 @@ endforeach(flag_var)
 @{{ end }}
 
 include_directories(@{{external_include}})
-link_libraries(@{{external_libs}})
+link_directories(@{{external_libs}})
 
 @{{ for _,project in pairs(projects or {}) do }}
 @{{ if not project.External then }}

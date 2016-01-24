@@ -94,14 +94,6 @@ namespace lemon{ namespace os{
 					{
 						std::error_code err;
 						_ioservice.run_one(err);
-
-						if (err)
-						{
-							if (err == lemon::io::errc::io_service_closed )
-							{
-								break;
-							}
-						}
 					}
 
 					for (;;)

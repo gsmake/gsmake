@@ -9,4 +9,9 @@
 #if defined(__linux)
 #include <lemon/io/reactor_io_service_epoll.hpp>
 #endif
+
+#if defined(WIN32)
+#include <lemon/io/iocp_io_service.hpp>
+#endif //WIN32
+
 #endif //LEMON_IO_IO_SERVICE_HPP

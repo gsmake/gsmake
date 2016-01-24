@@ -22,7 +22,7 @@
 #include <lemon/uuid.hpp>
 #include <lemon/nocopy.hpp>
 #include <lemon/io/io_service.hpp>
-#include <lemon/io/io_stream.hpp>
+#include <lemon/io/reactor_io_stream.hpp>
 
 namespace lemon {
     namespace io{

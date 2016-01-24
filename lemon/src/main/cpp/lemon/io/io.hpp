@@ -1,12 +1,12 @@
 #ifndef LEMON_IO_HPP
 #define LEMON_IO_HPP
-
+#include <lemon/io/handler.hpp>
 #include <lemon/io/io_errors.hpp>
 
 #ifdef WIN32
-#include <lemon/io/pipe_iocp.hpp>
-#include <lemon/io/io_object_iocp.hpp>
-#include <lemon/io/io_service_iocp.hpp>
+#include <lemon/io/iocp_io_pipe.hpp>
+#include <lemon/io/iocp_io_stream.hpp>
+#include <lemon/io/iocp_io_service.hpp>
 #else
 
 #include <lemon/io/reactor_io_pipe.hpp>
@@ -17,18 +17,6 @@
 #endif
 
 #endif //WIN32
-
-
-
-#include <lemon/io/handler.hpp>
-
-#include <lemon/io/mutex_none.hpp>
-
-namespace lemon{
-    namespace io{
-
-    }
-}
 
 
 

@@ -1,4 +1,5 @@
 
+#include <locale>
 
 #include <lua/lua.hpp>
 
@@ -222,7 +223,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(L,std::string(recv_buff,recv_buff + trans));
+				c->callback(L, std::string(recv_buff, recv_buff + trans));
 				lua_exec_out_callback(L,c);
 
 				return;
@@ -249,46 +250,54 @@ namespace lemoon { namespace os{
 
     int lua_exec(lua_State *L)
     {
-		using namespace lemon::os;
-
-        auto buff = lua_newuserdata(L,sizeof(command));
-
-		exec_options options = exec_options::none;
-
-		int callback = LUA_NOREF;
-
-		if (lua_type(L, 2) == LUA_TFUNCTION)
+		try
 		{
-			options = exec_options((int)exec_options::pipe_error | (int)exec_options::pipe_out);
+			using namespace lemon::os;
 
-			lua_pushvalue(L, 2);
-			callback = luaL_ref(L, LUA_REGISTRYINDEX);
+			auto buff = lua_newuserdata(L, sizeof(command));
+
+			exec_options options = exec_options::none;
+
+			int callback = LUA_NOREF;
+
+			if (lua_type(L, 2) == LUA_TFUNCTION)
+			{
+				options = exec_options((int)exec_options::pipe_error | (int)exec_options::pipe_out);
+
+				lua_pushvalue(L, 2);
+				callback = luaL_ref(L, LUA_REGISTRYINDEX);
+			}
+
+			auto cmd = new(buff) command(luaL_checkstring(L, 1), options, callback);
+
+			if (lua_type(L, 2) == LUA_TFUNCTION)
+			{
+				lua_exec_out_callback(L, cmd);
+
+				lua_exec_err_callback(L, cmd);
+			}
+
+			if (luaL_newmetatable(L, EXEC_CLASS_NAME)) {
+				lua_newtable(L);
+
+				luaL_setfuncs(L, exec, 0);
+
+				lua_setfield(L, -2, "__index");
+
+				lua_pushcfunction(L, lua_exec_close);
+
+				lua_setfield(L, -2, "__gc");
+			}
+
+			lua_setmetatable(L, -2);
+
+			return 1;
 		}
-
-        auto cmd = new(buff) command(luaL_checkstring(L,1), options,callback);
-
-		if (lua_type(L, 2) == LUA_TFUNCTION)
+		catch(const std::system_error &e)
 		{
-			lua_exec_out_callback(L, cmd);
-
-			lua_exec_err_callback(L, cmd);
+			return luaL_error(L, "call lemon::os::exec method error :%s", e.what());
 		}
-
-        if (luaL_newmetatable(L, EXEC_CLASS_NAME)) {
-            lua_newtable(L);
-
-            luaL_setfuncs(L, exec, 0);
-
-            lua_setfield(L, -2, "__index");
-
-            lua_pushcfunction(L, lua_exec_close);
-
-            lua_setfield(L, -2, "__gc");
-        }
-
-        lua_setmetatable(L, -2);
-
-        return 1;
+		
     }
 
     int lookup(lua_State *L)
