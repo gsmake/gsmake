@@ -63,6 +63,8 @@ int main(int args, char** argv) {
 
     lua_pushcfunction(L, luaopen_lemoon);
 
+	lemon::log::add_sink(std::unique_ptr<lemon::log::sink>(new lemon::log::console({ "console" })));
+
 	auto& console = lemon::log::get("console");
 	auto& logger = lemon::log::get("gsmake");
 
@@ -73,9 +75,7 @@ int main(int args, char** argv) {
 		lemonE(console, "panic:\n\t%s", err.c_str());
 		lemonE(console, "for more details, check the log files in directory: ${WORKSPACE}/.gsmake/log");
 
-        lemon::log::close();
-
-        return 1;
+		goto CLOSE;
     }
 
     lua_pushcfunction(L, pmain);
@@ -88,11 +88,10 @@ int main(int args, char** argv) {
 		lemonE(console, "panic:\n\t%s", err.c_str());
 		lemonE(console, "for more details, check the log files in directory: ${WORKSPACE}/.gsmake/log");
 
-        lemon::log::close();
-
-        return 1;
+		goto CLOSE;
     }
 
+CLOSE:
 
     lemon::log::close();
 

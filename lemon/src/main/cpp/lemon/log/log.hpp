@@ -30,7 +30,7 @@ namespace lemon{ namespace log{
 
 #ifdef WIN32
 		
-		int len = vsnprintf_s(NULL,0,0, fmt, args);
+		int len = vsnprintf(NULL,0, fmt, args) + 1;
 
 		char *buff = new char[len];
 

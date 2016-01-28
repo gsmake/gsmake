@@ -46,8 +46,6 @@ function module.ctor(workspace)
             false,
             1024*1024*10)
 
-        logsink.console_sink("console lemoon")
-
         once_flag = true
         obj.Root = true
     end
