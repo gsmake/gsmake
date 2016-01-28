@@ -20,6 +20,7 @@ namespace lemon{ namespace log{
 		{
 			if(_messages.empty())
 			{
+				if (_exitflag) break;
 				_notify.wait(lock);
 			}
 
@@ -39,8 +40,6 @@ namespace lemon{ namespace log{
 			}
 
 			lock.lock();
-
-			if(_exitflag) break;
 		}
 	}
 

@@ -136,7 +136,7 @@ end
 -- get absolute path
 function module.abs(path)
 
-    if  sys.iswindows() then return fs.fullpath(path) end
+    if  sys.host() == "Windows" then return fs.abs(path) end
 
     if module.isabs(path) then return module.clean(path) end
 

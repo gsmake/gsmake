@@ -33,7 +33,7 @@ int pmain(lua_State *L)
 
     auto mainFile = home / "/lib/gsmake/main.lua";
 
-    if(luaL_dofile(L,mainFile.generic_string().c_str()))
+    if(luaL_dofile(L, mainFile.generic_string().c_str()))
     {
         return luaL_error(L,lua_tostring(L,-1));
     }
@@ -55,6 +55,11 @@ static void createargtable(lua_State *L, char **argv, int argc) {
 
 int main(int args, char** argv) {
 
+	lemon::log::add_sink(std::unique_ptr<lemon::log::sink>(new lemon::log::console({ "console" })));
+
+	auto& console = lemon::log::get("console");
+	auto& logger = lemon::log::get("gsmake");
+
     lua_State *L = luaL_newstate();
 
     createargtable(L, argv, args);
@@ -62,11 +67,6 @@ int main(int args, char** argv) {
     luaL_openlibs(L);
 
     lua_pushcfunction(L, luaopen_lemoon);
-
-	lemon::log::add_sink(std::unique_ptr<lemon::log::sink>(new lemon::log::console({ "console" })));
-
-	auto& console = lemon::log::get("console");
-	auto& logger = lemon::log::get("gsmake");
 
     if (0 != lua_pcall(L, 0, 0, 0)) {
 		std::string err = lua_tostring(L, -1);

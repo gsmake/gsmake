@@ -70,7 +70,8 @@ function module.ctor(lake)
                _NAME        TEXT,
                _PATH        TEXT,
                _SOURCE      TEXT,
-               _VERSION     TEXT
+               _VERSION     TEXT,
+               _CACHED      BOOLEAN
             );
             create unique index if not exists _SOURCE_FULLNAME_INDEXER ON _SOURCE (_NAME,_VERSION);
             create table if not exists _SYNC
@@ -188,12 +189,31 @@ function module:save_source(name,version,source,path,force)
         self:remove_source(name,version)
     end
 
-    local SQL = string.format('insert into _SOURCE VALUES("%s","%s","%s","%s")',name,path,source,version)
+    local SQL = string.format('insert into _SOURCE VALUES("%s","%s","%s","%s",%d)',name,path,source,version,0)
 
     self:globaldb(function(db)
         sqlexec(db,SQL)
     end)
 
+end
+
+function module:cached_source(name,version,source,path)
+    self:remove_source(name,version)
+    local SQL = string.format('insert into _SOURCE VALUES("%s","%s","%s","%s",%d)',name,path,source,version,1)
+
+    self:globaldb(function(db)
+        sqlexec(db,SQL)
+    end)
+end
+
+function module:list_cached(f)
+    local SQL = 'SELECT * FROM _SOURCE WHERE _CACHED=1'
+
+    self:globaldb(function(db)
+        for name,path,_,version,_ in db:urows(SQL) do
+            f(name,path,version)
+        end
+    end)
 end
 
 return module

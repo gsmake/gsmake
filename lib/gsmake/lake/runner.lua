@@ -53,6 +53,7 @@ function module:run(name,...)
         end
     end
 
+
     for name,taskgroup in pairs(self.taskGroups) do
         logger:D("register taskgroup(%s) :",name)
         for _,task in ipairs(taskgroup or {}) do
@@ -60,15 +61,19 @@ function module:run(name,...)
         end
     end
 
+
     if name == nil or name == "" then
         return
     end
+
+    self.package.ValidTasks = self.taskGroups
 
     local taskGroup = self.taskGroups[name]
 
     if nil == taskGroup then
         throw("[%s:%s] unknown task name :%s",self.package.Name,self.package.Version,name)
     end
+
 
    local callstack = self:topSort(taskGroup)
 
@@ -83,9 +88,13 @@ function module:run(name,...)
             "lemoon.sandbox","lake.sandbox.pluginrunner",task.Lake,filepath.join(task.Owner.Path,".gsmake/gsmake",task.Package.Name))
 
             if i == #callstack then
-                sandbox:call(task.F,task,...)
+                if sandbox:call(task.F,task,...) then
+                    return true
+                end
             else
-                sandbox:call(task.F,task)
+                if sandbox:call(task.F,task) then
+                    return true
+                end
             end
             logger:D("\tfrom package [%s:%s] -- success",task.Package.Name,task.Package.Version)
         end
