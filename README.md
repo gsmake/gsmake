@@ -1,2 +1,2 @@
-# lemoon
-lemonkit's lua bind 
+# gsmake
+Modern/Fast Open-Source Enterprise Build Automation System implement by c++/lua
