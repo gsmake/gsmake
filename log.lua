@@ -2,40 +2,32 @@ local __lemoon_log = require "lemoonc.log"
 
 local class = {}
 
-function class:write(level,fmt,...)
-
-    local ok,msg = pcall(string.format,fmt,...)
-
-    if not ok then
-        error("invalid log args\n\t" .. msg,3)
-    end
-
-    __lemoon_log.log(self.source,level,msg)
-
-end
-
 function class:E(fmt,...)
-    self:write(1,fmt,...)
+    __lemoon_log.log(self.source,1,string.format(fmt,...))
 end
 
 function class:W(fmt,...)
-    self:write(2,fmt,...)
+    __lemoon_log.log(self.source,2,string.format(fmt,...))
 end
 
 function class:I(fmt,...)
-    self:write(4,fmt,...)
+    __lemoon_log.log(self.source,4,string.format(fmt,...))
 end
 
 function class:D(fmt,...)
-    self:write(8,fmt,...)
+    __lemoon_log.log(self.source,8,string.format(fmt,...))
 end
 
 function class:T(fmt,...)
-    self:write(16,fmt,...)
+    __lemoon_log.log(self.source,16,string.format(fmt,...))
 end
 
 function class:V(fmt,...)
-    self:write(32,fmt,...)
+    __lemoon_log.log(self.source,32,string.format(fmt,...))
+end
+
+function class:exit()
+    __lemoon_log.exit()
 end
 
 function class.ctor(name)

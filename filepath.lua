@@ -148,14 +148,11 @@ function module.split(path)
 end
 
 function module.fromslash(path)
-    local path = path:gsub("/","\\")
-
-    return path
+    return path:gsub("/","\\")
 end
 
 function module.toslash(path)
-    local path = path:gsub("\\","/")
-    return path
+    return path:gsub("\\","/")
 end
 
 -- return shortest path name equivalent to path
@@ -211,12 +208,9 @@ function module.clean(path)
 end
 
 function module.join(...)
-
     local path = module.__join(...)
 
-    local path = module.clean(path)
-
-    return path
+    return module.clean(path)
 end
 
 function module.__join(...)
@@ -230,3 +224,4 @@ function module.__join(...)
 end
 
 return module
+
