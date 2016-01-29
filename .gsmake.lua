@@ -1,6 +1,6 @@
 name "github.com/lemonkit/lemon" -- package name
 
---version "master" -- package version
+version "develop"
 
 plugin "github.com/gsmake/clang"
 
