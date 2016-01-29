@@ -26,9 +26,4 @@
 *.exe
 *.out
 *.app
-.idea
-build
-bin
-repo
 .gsmake
-.vscode
