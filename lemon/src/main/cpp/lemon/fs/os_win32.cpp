@@ -103,14 +103,17 @@ namespace lemon {namespace fs {
 
 		if (!is_directory(path))
 		{
+			bool flag = false;
+
 			for (;;)
 			{
 				if (0 == DeleteFileW(pathName.c_str())) {
 
-					if (GetLastError() == ERROR_ACCESS_DENIED) {
+					if (GetLastError() == ERROR_ACCESS_DENIED && flag == false) {
 						DWORD attrs = GetFileAttributesW(pathName.c_str());
 						attrs &= ~FILE_ATTRIBUTE_READONLY;
 						SetFileAttributesW(pathName.c_str(), attrs);
+						flag = true;
 						continue;
 					}
 
