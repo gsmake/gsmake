@@ -176,6 +176,7 @@ function module:run(...)
     else
         if self.Root then
             console:E("gsmake -- failed !!!!!!!!!!!")
+            return true
         end
     end
 end

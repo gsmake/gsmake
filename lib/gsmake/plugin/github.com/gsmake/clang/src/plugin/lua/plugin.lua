@@ -3,19 +3,19 @@ local logger    = class.new("lemoon.log","gsmake")
 
 local cmake = nil
 
-task.cmakegen = function(self)
+task.resources = function(self)
     cmake = class.new("cmake",self)
 
     cmake:cmakegen()
 end
-task.cmakegen.Desc = "generate cmake build files"
+task.resources.Desc = "generate cmake build files"
 
 
 task.compile = function(self)
     cmake:compile()
 end
 task.compile.Desc = "clang package compile task"
-task.compile.Prev = "cmakegen"
+task.compile.Prev = "resources"
 
 task.install = function(self,install_path)
     cmake:install(install_path)

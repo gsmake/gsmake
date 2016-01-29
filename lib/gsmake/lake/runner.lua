@@ -165,6 +165,8 @@ function module:topSort(taskGroup)
 
     table.remove(self.checkerOfDCG,#self.checkerOfDCG)
 
+    taskGroup.mark = "black"
+
     return sortGroups
 end
 

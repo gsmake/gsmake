@@ -11,15 +11,55 @@ local config = {
     pluginSrcDirs   = { "src/plugin/lua" };
 }
 
+local dependencies_dir = nil
+
+task.resources = function(self)
+    local lake              = self.Lake
+    local properties        = self.Owner.Properties
+    local dependencies      = nil
+
+    if properties.lua ~= nil then
+        dependencies = properties.lua.dependencies
+    end
+
+    dependencies_dir = filepath.toslash(filepath.join(lake.Config.GSMAKE_INSTALL_PATH,"lua"))
+
+    if dependencies ~= nil then
+        if type(dependencies) == "function" then
+            dependencies = dependencies()
+        end
+
+        for _,dep in ipairs(dependencies) do
+            if dep.version == nil then
+                dep.version = self.Lake.Config.GSMAKE_DEFAULT_VERSION
+            end
+
+            local sourcePath = self.Lake.Sync:sync(dep.name,dep.version)
+
+            -- load the package
+            local package = self.Lake.Loader:load(sourcePath,dep.name,dep.version)
+            -- link the source package
+            package:link()
+            -- setup package
+            package:setup()
+
+            if class.new("lake",package.Path):run("install",dependencies_dir) then
+                return true
+            end
+        end
+    end
+end
+
+task.resources.Desc = "prepare lua project's resources"
 
 
-task.install = function(self,prefix)
+task.install = function(self,install_path)
 
-    if prefix == nil or prefix == "" then
+    if install_path == nil or install_path == "" then
         throw("task install expect install path")
     end
 
-    prefix = fs.abs(prefix)
+    install_path = fs.abs(install_path)
 
     local packagePath       = self.Owner.Path
     local properties        = self.Owner.Properties
@@ -28,6 +68,7 @@ task.install = function(self,prefix)
     local pluginSrcDirs     = config.pluginSrcDirs
     local srcDirs           = config.srcDirs
     local skipDirs          = config.skipDirs
+    local prefix            = ""
 
     if properties.lua ~= nil then
         if properties.lua.pluginSrcDirs ~= nil then
@@ -38,12 +79,16 @@ task.install = function(self,prefix)
             srcDirs = properties.lua.srcDirs
         end
 
+        if properties.lua.installPrefix ~= nil then
+            prefix = properties.lua.installPrefix
+        end
+
         for _,v in ipairs(properties.lua.skipDirs or {}) do
             table.insert(skipDirs,v)
         end
     end
 
-    local targetPath  =  filepath.join(prefix,"gsmake",name)
+    local targetPath  =  filepath.join(install_path,"gsmake",name)
 
     for _,dir in pairs(pluginSrcDirs) do
         local srcDir = filepath.join(packagePath,dir)
@@ -54,7 +99,7 @@ task.install = function(self,prefix)
     end
 
     -- remove preversion lua library
-    targetPath = filepath.join(prefix,"lib")
+    targetPath = filepath.join(install_path,"lib",prefix)
 
     for _,dir in pairs(srcDirs) do
         local srcDir = filepath.join(packagePath,dir)
@@ -63,6 +108,13 @@ task.install = function(self,prefix)
             fs.copy_dir(srcDir,targetPath,fs.update_existing)
         end
     end
+
+    local deps = filepath.join(dependencies_dir,"lib")
+
+    if fs.exists(deps) then
+        fs.copy_dir(filepath.join(deps,entry),targetPath,fs.update_existing)
+    end
 end
 
 task.install.Desc = "lua language install task"
+task.install.Prev = "resources"
