@@ -124,7 +124,7 @@ function module:loadproject (name, config)
            skips                       = config["skips"];
       })
 
-      if #test.SrcFiles then
+      if #test.SrcFiles > 0 then
           self.tests[name] = test
       end
    end
@@ -240,9 +240,13 @@ function module:cmakegen ()
         exec:start("-A","x64","..")
     else
         exec:start("..")
+
     end
 
-    exec:wait()
+    if 0 ~= exec:wait() then
+        console:E("run cmake config -- failed")
+        return true
+    end
 
     console:I("generate cmake project [%s:%s] -- success",owner.Name,owner.Version)
     logger:I("generate cmake project [%s:%s] -- success",owner.Name,owner.Version)
@@ -262,7 +266,11 @@ function module:compile ()
     exec:dir(cmake_build_dir)
 
     exec:start("--build",".")
-    exec:wait()
+
+    if 0 ~= exec:wait() then
+        console:E("clang build -- failed")
+        return true
+    end
 
     local owner = self.task.Owner
     console:I("build cmake project [%s:%s] -- success",owner.Name,owner.Version)
@@ -300,10 +308,6 @@ function module:install (install_path)
         end
         console:I("%s -- success",project.Name)
     end
-
-
-
-
 
     fs.list(self.outputdir,function(entry)
         if entry == "." or entry == ".." then

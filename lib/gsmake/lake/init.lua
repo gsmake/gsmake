@@ -175,7 +175,7 @@ function module:run(...)
         end
     else
         if self.Root then
-            console:E("gsmake -- failed !!!!!!!!!!!")
+            console:E("gsmake -- failed !!!!!!!!!!!\n\t for more details, check the log files in directory %s",filepath.join(self.Config.GSMAKE_WORKSPACE,".gsmake","log"))
             return true
         end
     end
