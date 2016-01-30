@@ -2,6 +2,7 @@
 #define LEMON_LOG_SINK_HPP
 
 #include <vector>
+#include <string>
 #include <unordered_set>
 #include <lemon/nocopy.hpp>
 
@@ -19,7 +20,7 @@ namespace lemon{ namespace log{
 		sink():_apply_all(true){}
 
 		sink(const std::vector<std::string> & sources)
-			:_apply_sources(sources.begin(),sources.end()),_apply_all(false)
+			:_apply_all(false),_apply_sources(sources.begin(),sources.end())
 		{
 
 		}

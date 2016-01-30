@@ -8,7 +8,6 @@
 
 #include <lemon/log/sink.hpp>
 #include <lemon/log/logger.hpp>
-#include <lemon/log/factory.hpp>
 #include <lemon/log/file_sink.hpp>
 
 namespace lemon{ namespace log{

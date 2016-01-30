@@ -1,13 +1,13 @@
 
+
+#include <mutex>
 #include <locale>
+#include <cassert>
 
 #include <lua/lua.hpp>
-
 #include <lemon/os/os.hpp>
 
-#include "lemoon.h"
 
-#include <cassert>
 
 
 auto & logger = lemon::log::get("lemoon");
@@ -97,10 +97,8 @@ namespace lemoon { namespace os{
 		case arch_t::X86:
 			lua_pushstring(L, "X86");
 			break;
-		default:
-			lua_pushstring(L, "Unknown");
-			break;
 		}
+
 
 		return 1;
 	}
@@ -121,19 +119,30 @@ namespace lemoon { namespace os{
 
 		void callback(lua_State *L,const std::string & message)
 		{
+			std::lock_guard<std::mutex> lock(_mutex);
+
+			_stream << message;
+		}
+
+		void flush(lua_State *L)
+		{
+			std::lock_guard<std::mutex> lock(_mutex);
+
 			if(_out != LUA_NOREF)
 			{
 				lua_rawgeti(L, LUA_REGISTRYINDEX, _out);
 
 				assert(lua_type(L, -1) == LUA_TFUNCTION);
 
-				lua_pushstring(L, message.c_str());
+				lua_pushstring(L, _stream.str().c_str());
 
 				if (0 != lua_pcall(L, 1, 0, 0))
 				{
 					lemonE(logger, "call exec output callback function error :%s",lua_tostring(L,-1));
 				}
 			}
+
+			_stream.str();
 		}
 
 		void close(lua_State *L)
@@ -145,7 +154,9 @@ namespace lemoon { namespace os{
 		}
 
 	private:
-		int					_out;
+		int						_out;
+		std::stringstream		_stream;
+		std::mutex				_mutex;
 	};
 
     int lua_exec_start(lua_State *L)
@@ -182,7 +193,11 @@ namespace lemoon { namespace os{
     {
         auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
-        lua_pushinteger(L,cmd->wait());
+		auto exit_code = cmd->wait();
+
+		cmd->flush(L);
+
+        lua_pushinteger(L,exit_code);
 
         return 1;
     }

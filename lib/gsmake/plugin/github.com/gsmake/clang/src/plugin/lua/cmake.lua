@@ -230,6 +230,8 @@ function module:cmakegen ()
     console:I("generate cmake project [%s:%s] ...",owner.Name,owner.Version)
     logger:I("generate cmake project [%s:%s] ...",owner.Name,owner.Version)
 
+    print(self.cmake_path)
+
     local exec = sys.exec(self.cmake_path,function(msg)
         logger:I("%s",msg)
     end)

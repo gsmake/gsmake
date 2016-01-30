@@ -1,5 +1,6 @@
 #include <lemon/log/log.hpp>
 #include <lemon/log/sink.hpp>
+#include <lemon/log/factory.hpp>
 
 namespace lemon{ namespace log{
 
