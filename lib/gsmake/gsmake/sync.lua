@@ -1,26 +1,19 @@
--- the lake package sync services
 local fs        = require "lemoon.fs"
 local regex     = require "lemoon.regex"
 local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
+local module    = {}
 
--- cached logger
-local logger = class.new("lemoon.log","gsmake")
-
-local module = {}
-
-function module.ctor(lake)
+function module.ctor (loader)
     local obj = {
-        lake        = lake;
-        db          = lake.DB;
-        remotes     = lake.Remotes;
+        Loader          = loader    ; -- gsmake loader belongs to
     }
 
     return obj
 end
 
 function module:get_sync_executor(name,version)
-    for _,remote in pairs(self.lake.Remotes) do
+    for _,remote in pairs(self.Loader.GSMake.Remotes) do
 
         local url = regex.gsub(name,remote.Pattern,remote.URL)
 
@@ -28,13 +21,11 @@ function module:get_sync_executor(name,version)
 
             local executorName = string.format("sync.%s",remote.Sync)
 
-            local ok, executor = pcall(class.new,executorName,self.lake,name,version)
+            local ok, executor = pcall(class.new,executorName,self.Loader.GSMake,name,version)
 
             if not ok then
                 throw("load sync executor %s err :\n\t%s",executorName,executor)
             end
-
-            logger:I("sync package '%s:%s' -- success ",name,version)
 
             return true,executor,url
         end
@@ -44,7 +35,6 @@ function module:get_sync_executor(name,version)
 end
 
 function module:sync_remote(name,version)
-    logger:I("sync package '%s:%s' ... ",name,version)
 
     local ok, executor,url = self:get_sync_executor(name,version)
 
@@ -53,9 +43,6 @@ function module:sync_remote(name,version)
     end
 
     executor:sync_remote(url)
-
-    logger:I("sync package '%s:%s' -- success ",name,version)
-
 end
 
 function module:sync_source(name,version)
@@ -69,34 +56,25 @@ function module:sync_source(name,version)
     return executor:sync_source()
 end
 
-function module:sync(name,version)
 
-    logger:I("sync package[%s:%s] ...",name,version)
+-- sync package's
+function module:sync (name,version)
+    local repoDB    = self.Loader.GSMake.Repo
 
-    if version == nil then
-        version = self.lake.Config.GSMAKE_DEFAULT_VERSION
-    end
-
-    local path,ok = self.db:query_source(name,version)
-
+    local path,ok = repoDB:query_source(name,version)
     if ok and fs.exists(path) then
-        logger:I("sync package[%s:%s] -- success\n\tdir :%s",name,version,path)
         return path
     end
 
-    path,ok = self.db:query_sync(name,version)
+    path,ok = repoDB:query_sync(name,version)
 
     if ok and fs.exists(path) then
-        logger:I("found local package [%s：%s] repo \n\tdir :%s",name,version,path)
         path = self:sync_source(name,version)
-        logger:I("sync package[%s：%s] -- success\n\tdir :%s",name,version,path)
         return path
     end
 
     self:sync_remote(name,version)
-    path = self:sync_source(name,version)
-    logger:I("sync package[%s：%s] -- success\n\tdir :%s",name,version,path)
-    return path
+    return self:sync_source(name,version)
 end
 
 return module

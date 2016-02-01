@@ -8,7 +8,7 @@ local module = {}
 
 function module.ctor(env,package)
 
-    env.lake = package.lake
+    env.gsmake = package.Loader.GSMake
 
     env.name = function(name)
         package.Name = name
@@ -19,7 +19,7 @@ function module.ctor(env,package)
     end
 
     env.plugin = function(name)
-        local plugin = class.new("lake.plugin",name,package)
+        local plugin = class.new("gsmake.plugin",name,package)
         package.Plugins[name] = plugin
         return plugin
     end
@@ -35,12 +35,12 @@ function module.ctor(env,package)
             assert(type(F) == "function","the input F must be a function")
 
             package.Tasks[name] = {
-                Lake            = package.lake;
+                GSMake          = package.Loader.GSMake;
                 Name            = name;
-                F               = F;
-                Package         = package;
-                Owner           = package;
                 Desc            = "";
+                Package         = package;
+                Owner           = package; -- self loader
+                F               = F;
             }
         end;
     }

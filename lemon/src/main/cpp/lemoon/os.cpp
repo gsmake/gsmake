@@ -117,7 +117,7 @@ namespace lemoon { namespace os{
 
 		}
 
-		void callback(lua_State *L,const std::string & message)
+		void callback(const std::string & message)
 		{
 			std::lock_guard<std::mutex> lock(_mutex);
 
@@ -238,7 +238,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(L, std::string(recv_buff, recv_buff + trans));
+				c->callback(std::string(recv_buff, recv_buff + trans));
 				lua_exec_out_callback(L,c);
 
 				return;
@@ -255,7 +255,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(L, std::string(recv_buff, recv_buff + trans));
+				c->callback(std::string(recv_buff, recv_buff + trans));
 				lua_exec_err_callback(L, c);
 
 				return;

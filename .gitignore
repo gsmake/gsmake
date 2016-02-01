@@ -32,3 +32,4 @@ bin
 repo
 .gsmake
 .vscode
+.repo

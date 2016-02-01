@@ -11,7 +11,7 @@ local logger = class.new("lemoon.log","gsmake")
 local console = class.new("lemoon.log","console")
 
 local module = {}
-function module.ctor(lake,name,version)
+function module.ctor(gsmake,name,version)
 
     local ok,path = sys.lookup("git")
 
@@ -22,11 +22,10 @@ function module.ctor(lake,name,version)
     logger:D("found git tool :'%s'",path)
 
     local obj = {
-        lake        = lake;
         name        = name;
         version     = version;
         exe         = path;
-        db          = lake.DB;
+        db          = gsmake.Repo;
     }
 
     return obj
@@ -41,7 +40,7 @@ function module:sync_remote(remote)
 
     console:I("clone package [%s:%s] from %s",self.name,self.version,remote)
 
-    local workdir = filepath.join(self.lake.Config.GSMAKE_REPO,"git",self.name)
+    local workdir = filepath.join(self.db.Path,"git",self.name)
 
     if not fs.exists(workdir) then
 

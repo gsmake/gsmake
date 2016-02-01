@@ -97,7 +97,7 @@ function module:setup()
 
         -- end
 
-        plugin:setup()
+        plugin.Loader:setup()
 
         logger:D(
             "[%s:%s] setup plugin [%s:%s] -- success\n\tdir :%s",
