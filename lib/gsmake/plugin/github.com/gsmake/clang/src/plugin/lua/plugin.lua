@@ -4,7 +4,7 @@ local logger    = class.new("lemoon.log","gsmake")
 local cmake = nil
 
 task.resources = function(self)
-    
+
     cmake = class.new("cmake",self)
 
     return cmake:cmakegen()

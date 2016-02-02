@@ -25,7 +25,7 @@ function module.new(name,...)
 
     setmetatable(obj,{
          __index = metatable;
-         __gc =metatable.final;
+         __gc = metatable.final;
      })
 
     return obj

@@ -1,3 +1,5 @@
+require "lemoon.requirex"
+
 local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 
@@ -15,59 +17,112 @@ local function loadScript(script,env)
     return closure()
 end
 
+local function sandbox_call(env,call,...)
+    local loaded    = class.clone(package.loaded)
+    local path      = package.path
+    local cpath     = package.cpath
+    package.path    = ""
+    package.cpath   = ""
+    package.spath   = env.spath or path
+    package.scpath  = env.scpath or cpath
+
+    for k,_ in pairs(package.loaded) do
+        if _G[k] == nil then
+            package.loaded[k] = nil
+        end
+    end
+
+    local idx = 1
+
+    while true do
+        local name,_ = debug.getupvalue(call, idx)
+
+        if not name then break end
+
+        if name == "_ENV" then
+            debug.setupvalue(call,idx,env)
+            break
+        end
+
+        idx = idx + 1
+    end
+
+    local return_args = table.pack(pcall(call,...))
+
+    package.path    = path
+    package.cpath   = cpath
+    package.spath   = ""
+    package.scpath  = ""
+
+
+    for k,_ in pairs(package.loaded) do
+        package.loaded[k] = nil
+    end
+
+    for k,v in pairs(loaded) do
+        package.loaded[k] = v
+    end
+
+    if not return_args[1] then
+        throw(return_args[2])
+    end
+
+    return table.unpack(return_args,2)
+end
+
 function module.ctor(sandbox,...)
     local obj = {
-        originPath      = _ENV.package.path;
-        originCPath     = _ENV.package.cpath;
-        originLoaded    = class.clone(_ENV.package.loaded);
-        env             = class.clone(_ENV);
+        env         = class.clone(_ENV);
     }
 
-    require(sandbox).ctor(obj.env,...)
+    setmetatable(obj.env,nil)
 
-    assert(obj.env.package == _ENV.package,string.format("sandbox(%s) modified variable(package) : not allow",sandbox))
+    for k,_ in pairs(obj.env) do
+        if _G[k] == nil then
+            obj.env[k] = nil
+        end
+    end
+
+    obj.env.require = function(name)
+
+        local block = _G.require(name)
+
+        if type(block) == "table" and block["__lemoon_requirex"] ~= nil then
+            block = block["__lemoon_requirex"](obj.env)
+
+            return block
+        end
+
+        return block
+    end
+
+    sandbox_call(obj.env,function (...)
+        require(sandbox).ctor(obj.env,...)
+        obj.env.spath = obj.env.package.spath
+        obj.env.scpath = obj.env.package.scpath
+    end,...)
 
     return obj
 end
 
 function module:call(F,...)
-    -- debug.setupvalue(F,1,self.env)
-    local ret = { pcall(F,...) }
+    return sandbox_call(self.env,function(...)
 
-    _ENV.package.path = self.originPath
-    _ENV.package.cpath = self.originCPath
-
-    for k in pairs(_ENV.package.loaded) do
-        if self.originLoaded[k] == nil then
-            _ENV.package.loaded[k] = nil
-        end
-    end
-
-    if not ret[1] then
-        error("\n\t" .. ret[2],2)
-    end
-
-    return table.unpack(ret,2)
+        return F(...)
+    end,...)
 end
 
 function module:run(script)
+    return sandbox_call(self.env,function ()
 
-    local ret = { pcall(loadScript,script,self.env) }
+        local block,err = loadfile(script,"bt",self.env)
 
-    _ENV.package.path = self.originPath
-    _ENV.package.cpath = self.originCPath
-
-    for k in pairs(_ENV.package.loaded) do
-        if self.originLoaded[k] == nil then
-            _ENV.package.loaded[k] = nil
+        if err ~= nil then
+            throw(err)
         end
-    end
 
-    if not ret[1] then
-        error("\n\t" .. ret[2],2)
-    end
-
-    return table.unpack(ret,2)
+        return block()
+    end)
 end
 
 

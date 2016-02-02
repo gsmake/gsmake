@@ -1,8 +1,6 @@
 local sys   = require "lemoon.sys"
 local class = require "lemoon.class"
 
-local logger = class.new("lemoon.log","clang")
-
 
 local module = {}
 
@@ -10,8 +8,13 @@ function module.ctor(env,plugin,path)
 
     env.task = {}
 
+    env.loader = plugin.Loader
+
+    env.package.spath = string.format("%s;%s/?.lua",env.package.spath,path)
+    -- env.package.cpath = string.format("%s;%s/?%s",env.package.cpath,path,sys.SO_NAME)
+
     local task_metatable = {
-        __index = function(_,name)
+        __index = function(ctx,name)
             return plugin.Tasks[name]
         end;
 
@@ -24,16 +27,12 @@ function module.ctor(env,plugin,path)
                 Owner           = plugin.Owner;
                 Package         = plugin.Package;
                 Desc            = "";
+                Path            = path;
             }
         end;
     }
 
     setmetatable(env.task,task_metatable)
-
-    env.loader = plugin.Loader
-
-    env.package.path = string.format("%s;%s/?.lua",env.package.path,path)
-    env.package.cpath = string.format("%s;%s/?%s",env.package.cpath,path,sys.SO_NAME)
 
 end
 

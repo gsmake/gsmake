@@ -60,7 +60,8 @@ end
 function module:load()
     local package = self.Package
 
-    for _,plugin in pairs(package.Plugins) do
+    for name,plugin in pairs(package.Plugins) do
+
         plugin:load()
     end
 
