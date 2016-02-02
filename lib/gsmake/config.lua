@@ -3,4 +3,7 @@ return {
     ConfigFileName          =  ".gsmakeconfig.lua";
     TempDirName             =  ".gsmake";
     DefaultVersion          =  "snapshot";
+    SkipDirs                = { ".gsmake",".git", ".svn" };
+    TargetHost              = require "lemoon.sys" .host();
+    TargetArch              = require "lemoon.sys" .arch();
 }

@@ -31,9 +31,8 @@ function module.ctor(sandbox,...)
 end
 
 function module:call(F,...)
-    self.env,_ENV = _ENV,self.env
+    -- debug.setupvalue(F,1,self.env)
     local ret = { pcall(F,...) }
-    self.env,_ENV = _ENV,self.env
 
     _ENV.package.path = self.originPath
     _ENV.package.cpath = self.originCPath

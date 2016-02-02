@@ -61,12 +61,7 @@ function module:load()
     local package = self.Package
 
     for _,plugin in pairs(package.Plugins) do
-        -- install dependency plugin
-        logger:D("[%s:%s] load and link plugin [%s:%s]",package.Name,package.Version,plugin.Name,plugin.Version)
-
         plugin:load()
-
-        logger:D("[%s:%s] load and link plugin [%s:%s] -- success",package.Name,package.Version,plugin.Name,plugin.Version)
     end
 
     return package
@@ -84,7 +79,6 @@ function module:setup()
 end
 
 function module:run(...)
-
     self.runner:run(...)
 end
 

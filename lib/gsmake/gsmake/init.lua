@@ -66,10 +66,34 @@ function module.ctor(workspace,env)
 
     gsmake.Package = loader.Package
 
+    -- load builtin system commands
+    module.load_system_commands(gsmake,gsmake.Package,filepath.join(gsmake.Config.Home,"lib/gsmake/cmd"))
+
+
     loader:load()
     loader:setup()
 
     return gsmake
+end
+
+function module:load_system_commands(rootPackage,dir)
+    if fs.exists(filepath.join(dir,self.Config.PackageFileName)) then
+        local package = class.new("gsmake.loader",self,dir).Package
+        self.Repo:save_source(package.Name,package.Version,dir,dir,true)
+        local plugin = class.new("gsmake.plugin",package.Name,rootPackage)
+        rootPackage.Plugins[package.Name] = plugin
+        return
+    end
+
+    fs.list(dir,function(entry)
+        if entry == "." or entry == ".." then return end
+
+        local path = filepath.join(dir,entry)
+
+        if fs.isdir(path) then
+            module.load_system_commands(self,rootPackage,path)
+        end
+    end)
 end
 
 function module:load_system_plugins(dir)

@@ -28,24 +28,24 @@ function module.ctor (task)
         tests           = {};               -- clang test projects
     }
 
-    local lake = task.Owner.Lake
+    loader = task.Owner.Loader
 
     obj.cmake_root_dir = filepath.join(
-        lake.Config.GSMAKE_INSTALL_PATH,"cmake",
-        lake.Config.GSMAKE_TARGET_HOST .. "-" .. lake.Config.GSMAKE_TARGET_ARCH)
+        loader.Temp,"cmake",
+        loader.Config.TargetHost .. "-" .. loader.Config.TargetArch)
 
     obj.outputdir = filepath.toslash(filepath.join(
-        lake.Config.GSMAKE_INSTALL_PATH,"clang",
-        lake.Config.GSMAKE_TARGET_HOST .. "-" .. lake.Config.GSMAKE_TARGET_ARCH))
+        loader.Temp,"clang",
+        loader.Config.TargetHost .. "-" .. loader.Config.TargetArch))
 
     return obj
 end
 
 function module:loadproject (name, config)
     logger:D("found clang module [%s]",name)
-    local lake = self.task.Lake
+
     if config["type"] == nil then
-        config["type"] = lake.Config.GSMAKE_CLANG_DEFAULT_TYPE or "static"
+        config["type"] = loader.Config.ClangModuleType or "static"
     end
 
     if config["config"] == nil then
@@ -53,7 +53,7 @@ function module:loadproject (name, config)
     end
 
     if config["skips"] == nil then
-       config["skips"] = lake.Config.GSMAKE_SKIP_DIRS
+       config["skips"] = loader.Config.SkipDirs
     end
 
     if config["src"] == nil then
@@ -92,8 +92,8 @@ function module:loadproject (name, config)
         SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,name,"src/main"));
         SrcDirs                     = srcDirs;
         Deps                        = config["dependencies"] or {};
-        Lake                        = lake;
-        TargetHost                  = self.task.Lake.Config.GSMAKE_TARGET_HOST;
+        Loader                      = loader;
+        TargetHost                  = loader.Config.TargetHost;
         config                      = config["config"];
         header_files                = config["header_files"];
         source_files                = config["source_files"];
@@ -116,8 +116,8 @@ function module:loadproject (name, config)
            SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,name,"src/test"));
            SrcDirs                     = testDirs;
            Deps                        = config["test_dependencies"] or {};
-           Lake                        = lake;
-           TargetHost                  = self.task.Lake.Config.GSMAKE_TARGET_HOST;
+           Loader                      = loader;
+           TargetHost                  = loader.Config.TargetHost;
            config                      = config["config"];
            header_files                = config["header_files"];
            source_files                = config["source_files"];
@@ -167,7 +167,7 @@ function module:gen_cmake_files ()
         external_libs           = filepath.join(self.outputdir,"lib");
         projects                = self.projects;
         tests                   = self.tests;
-        target_host             = self.task.Lake.Config.GSMAKE_TARGET_HOST;
+        target_host             = loader.Config.GSMAKE_TARGET_HOST;
     })
 
     for _,project in pairs(self.projects) do
@@ -237,8 +237,8 @@ function module:cmakegen ()
     end)
     exec:dir(cmake_build_dir)
 
-    local config = self.owner.Lake.Config
-    if config.GSMAKE_TARGET_HOST == "Windows" and config.GSMAKE_TARGET_ARCH == "AMD64" then
+    local config = loader.Config
+    if config.TargetHost == "Windows" and config.TargetArch == "AMD64" then
         exec:start("-A","x64","..")
     else
         exec:start("..")

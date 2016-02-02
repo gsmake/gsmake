@@ -6,7 +6,7 @@ local logger    = class.new("lemoon.log","gsmake")
 
 local config = {
 
-    skipDirs        = lake.Config.GSMAKE_SKIP_DIRS;
+    skipDirs        = loader.Config.SkipDirs;
     srcDirs         = { "src/main/lua" };
     pluginSrcDirs   = { "src/plugin/lua" };
 }
@@ -14,7 +14,6 @@ local config = {
 local dependencies_dir = nil
 
 task.resources = function(self)
-    local lake              = self.Lake
     local properties        = self.Owner.Properties
     local dependencies      = nil
 
@@ -22,7 +21,7 @@ task.resources = function(self)
         dependencies = properties.lua.dependencies
     end
 
-    dependencies_dir = filepath.toslash(filepath.join(lake.Config.GSMAKE_INSTALL_PATH,"lua"))
+    dependencies_dir = filepath.toslash(filepath.join(loader.Temp,"lua"))
 
     if dependencies ~= nil then
         if type(dependencies) == "function" then
@@ -31,10 +30,10 @@ task.resources = function(self)
 
         for _,dep in ipairs(dependencies) do
             if dep.version == nil then
-                dep.version = self.Lake.Config.GSMAKE_DEFAULT_VERSION
+                dep.version = loader.Config.DefaultVersion
             end
 
-            local sourcePath = self.Lake.Sync:sync(dep.name,dep.version)
+            local sourcePath = loader.Sync:sync(dep.name,dep.version)
 
             -- load the package
             local package = self.Lake.Loader:load(sourcePath,dep.name,dep.version)

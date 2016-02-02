@@ -30,7 +30,7 @@ function module.ctor(env,plugin,path)
 
     setmetatable(env.task,task_metatable)
 
-    env.lake = plugin.Package.lake
+    env.loader = plugin.Loader
 
     env.package.path = string.format("%s;%s/?.lua",env.package.path,path)
     env.package.cpath = string.format("%s;%s/?%s",env.package.cpath,path,sys.SO_NAME)

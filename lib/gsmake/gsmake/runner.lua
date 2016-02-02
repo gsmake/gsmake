@@ -73,7 +73,7 @@ function module:run(name,...)
             logger:D("\tfrom package [%s:%s] ...",task.Package.Name,task.Package.Version)
 
             local sandbox = class.new(
-            "lemoon.sandbox","lake.sandbox.pluginrunner",task.Lake,filepath.join(task.Owner.Path,".gsmake/gsmake",task.Package.Name))
+            "lemoon.sandbox","gsmake.sandbox.runner",task.Package.Loader,filepath.join(task.Owner.Path,".gsmake/gsmake",task.Package.Name))
 
             if i == #callstack then
                 if sandbox:call(task.F,task,...) then
