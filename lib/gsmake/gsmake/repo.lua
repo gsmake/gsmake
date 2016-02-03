@@ -1,4 +1,5 @@
 local fs        = require "lemoon.fs"
+local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 local sqlite3   = require "lemoon.sqlite3"
