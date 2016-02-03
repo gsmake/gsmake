@@ -25,6 +25,7 @@ function module.ctor(gsmake,name,version)
         name        = name;
         version     = version;
         exe         = path;
+        gsmake      = gsmake;
         db          = gsmake.Repo;
     }
 
@@ -110,7 +111,7 @@ function module:sync_remote(remote)
 
     local version = self.version
 
-    if version == self.lake.Config.GSMAKE_DEFAULT_VERSION then
+    if version == self.gsmake.Config.DefaultVersion then
         version = "master"
     end
 

@@ -21,6 +21,8 @@ local function sandbox_call(env,call,...)
     local loaded    = class.clone(package.loaded)
     local path      = package.path
     local cpath     = package.cpath
+    local spath      = package.spath
+    local scpath     = package.scpath
     package.path    = ""
     package.cpath   = ""
     package.spath   = env.spath
@@ -51,8 +53,8 @@ local function sandbox_call(env,call,...)
 
     package.path    = path
     package.cpath   = cpath
-    package.spath   = ""
-    package.scpath  = ""
+    package.spath   = spath
+    package.scpath  = scpath
 
 
     for k,_ in pairs(package.loaded) do

@@ -165,6 +165,8 @@ namespace lemon {
 							throw std::system_error(_errcode);
 						}
 
+						_waiter.join();
+
 						return _exit_code;
 					}
 

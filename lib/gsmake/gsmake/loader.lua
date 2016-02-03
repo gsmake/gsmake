@@ -22,6 +22,8 @@ function module.ctor (gsmake,path,name,version)
 
     loader.Temp =  filepath.join(path,gsmake.Config.TempDirName)
 
+    -- loader.sandbox = class.new("lemoon.sandbox","gsmake.sandbox.loader",loader)
+
     -- create temp directory
     if not fs.exists(loader.Temp) then
         fs.mkdir(loader.Temp,true)
@@ -29,6 +31,7 @@ function module.ctor (gsmake,path,name,version)
 
     -- load config
     module.loadconfig(loader)
+
     -- load loader db
     loader.DB   = class.new("gsmake.loaderdb",loader,loader.Temp)
     -- load loader's sync engine
