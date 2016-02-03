@@ -44,11 +44,11 @@ function module.ctor(workspace,env)
     -- set the project workspace
     gsmake.Config.Workspace     = workspace
 
-    openlog(gsmake)
-
     if not fs.exists(filepath.join(workspace ,gsmake.Config.PackageFileName)) then
         gsmake.Config.Workspace = gsmake.Config.Home
     end
+
+    openlog(gsmake)
 
     if not fs.exists(gsmake.Config.GlobalRepo) then
         fs.mkdir(gsmake.Config.GlobalRepo,true) -- create repo directories
