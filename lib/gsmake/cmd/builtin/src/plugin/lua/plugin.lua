@@ -16,6 +16,34 @@ task.list.Desc = "list all task"
 
 
 task.cache = function(self,cmd,path)
+
+    local gsmake = self.Owner.Loader.GSMake
+    local repo = gsmake.Repo
+
+    if cmd == "list" then -- list the cached packages
+        repo:query_cached_sources(function(name,path,version)
+            console:I("\t[%s:%s] %s",name,version,path)
+        end)
+        return
+    end
+
+    path = filepath.abs(path)
+
+    local package = class.new("gsmake.loader",gsmake,path).Package
+
+    if package.External then
+        throw("target path is not a valid gsmake package :%s",path)
+    end
+
+    if cmd == "add" then
+        repo:save_cached_source(package.Name,package.Version,package.Path)
+    elseif cmd == "rm" then
+        repo:remove_cached_source(package.Name,package.Version,package.Path)
+    else
+        console:E("unknown cache command option :%s",cmd)
+        return true
+    end
+
 end
 
 task.cache.Desc = "cache local package"

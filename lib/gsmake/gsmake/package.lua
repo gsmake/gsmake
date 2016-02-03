@@ -25,6 +25,8 @@ function module.ctor (loader,path,name,version)
         local sandbox = class.new("lemoon.sandbox","gsmake.sandbox.package",package)
         sandbox:run(gsmakeFilePath)
         logger:D("load gsmake package -- success\n\t%s",gsmakeFilePath)
+    else
+        package.External = true
     end
 
     return package

@@ -129,4 +129,36 @@ function module:save_source(name,version,source,path,force)
 
 end
 
+function module:save_cached_source(name,version,path)
+
+    self:remove_source(name,version)
+
+    local SQL = string.format('insert into _SOURCE VALUES("%s","%s","%s","%s",%d)',name,path,path,version,1)
+
+    self:exec(function(db)
+        sqlexec(db,SQL)
+    end)
+
+end
+
+function module:remove_cached_source(name,version,path)
+
+    local SQL = string.format('delete FROM _SOURCE WHERE _NAME="%s" and _VERSION="%s" and _SOURCE="%s" and _PATH="%s"',name,version,path,path)
+
+    self:exec(function(db)
+        sqlexec(db,SQL)
+    end)
+
+end
+
+function module:query_cached_sources(callback)
+    local SQL = 'SELECT * FROM _SOURCE WHERE _CACHED=1'
+
+    return self:exec(function(db)
+        for name,path,_,version,_ in db:urows(SQL) do
+            callback(name,path,version)
+        end
+    end)
+end
+
 return module

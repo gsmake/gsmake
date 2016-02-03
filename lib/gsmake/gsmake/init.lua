@@ -115,7 +115,7 @@ function module:load_system_plugins(dir)
 end
 
 function module:run (...)
-    self.Package.Loader:run(...)
+    return self.Package.Loader:run(...)
 end
 
 return module

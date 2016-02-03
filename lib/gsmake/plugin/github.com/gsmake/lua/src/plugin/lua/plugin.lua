@@ -28,6 +28,8 @@ task.resources = function(self)
             dependencies = dependencies()
         end
 
+        local gsmake = self.Owner.Loader.GSMake
+
         for _,dep in ipairs(dependencies) do
             if dep.version == nil then
                 dep.version = loader.Config.DefaultVersion
@@ -42,7 +44,7 @@ task.resources = function(self)
             -- setup package
             package:setup()
 
-            if class.new("lake",package.Path):run("install",dependencies_dir) then
+            if class.new("gsmake.loader",gsmake,package.Path):run("install",dependencies_dir) then
                 return true
             end
         end

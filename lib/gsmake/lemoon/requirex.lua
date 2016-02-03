@@ -20,7 +20,7 @@ local function create_loader(filename)
 end
 
 local function searcher(name)
-
+	
 	local filename, err = package.searchpath(name, package.spath or "")
 	if filename == nil then
 		return err

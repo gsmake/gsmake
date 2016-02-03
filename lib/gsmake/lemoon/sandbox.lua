@@ -23,8 +23,8 @@ local function sandbox_call(env,call,...)
     local cpath     = package.cpath
     package.path    = ""
     package.cpath   = ""
-    package.spath   = env.spath or path
-    package.scpath  = env.scpath or cpath
+    package.spath   = env.spath
+    package.scpath  = env.scpath
 
     for k,_ in pairs(package.loaded) do
         if _G[k] == nil then
@@ -96,6 +96,17 @@ function module.ctor(sandbox,...)
         return block
     end
 
+    obj.env.spath = package.path
+    obj.env.scpath = package.cpath
+
+    if obj.env.spath == "" then
+        obj.env.spath = package.spath
+    end
+
+    if obj.env.scpath == "" then
+        obj.env.scpath = package.scpath
+    end
+
     sandbox_call(obj.env,function (...)
         require(sandbox).ctor(obj.env,...)
         obj.env.spath = obj.env.package.spath
@@ -107,7 +118,6 @@ end
 
 function module:call(F,...)
     return sandbox_call(self.env,function(...)
-
         return F(...)
     end,...)
 end
