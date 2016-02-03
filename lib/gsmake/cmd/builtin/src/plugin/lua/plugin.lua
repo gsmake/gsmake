@@ -27,6 +27,11 @@ task.cache = function(self,cmd,path)
         return
     end
 
+    if not path then
+        console:E("expect caching package path")
+        return true
+    end
+
     path = filepath.abs(path)
 
     local package = class.new("gsmake.loader",gsmake,path).Package
@@ -36,9 +41,13 @@ task.cache = function(self,cmd,path)
     end
 
     if cmd == "add" then
+        console:I("cache package [%s:%s] ...",package.Name,package.Version)
         repo:save_cached_source(package.Name,package.Version,package.Path)
+        console:I("cache package [%s:%s] -- success",package.Name,package.Version)
     elseif cmd == "rm" then
+        console:I("remove cached package [%s:%s] ...",package.Name,package.Version)
         repo:remove_cached_source(package.Name,package.Version,package.Path)
+        console:I("remove cached package [%s:%s] -- success",package.Name,package.Version)
     else
         console:E("unknown cache command option :%s",cmd)
         return true
