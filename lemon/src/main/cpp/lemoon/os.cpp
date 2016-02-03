@@ -117,33 +117,23 @@ namespace lemoon { namespace os{
 
 		}
 
-		void callback(const std::string & message)
+		void callback(lua_State *L,const std::string & message)
 		{
-			std::lock_guard<std::mutex> lock(_mutex);
-
-			_stream << message;
-		}
-
-		void flush(lua_State *L)
-		{
-			std::lock_guard<std::mutex> lock(_mutex);
-
-			if(_out != LUA_NOREF)
+			if (_out != LUA_NOREF)
 			{
 				lua_rawgeti(L, LUA_REGISTRYINDEX, _out);
 
 				assert(lua_type(L, -1) == LUA_TFUNCTION);
 
-				lua_pushstring(L, _stream.str().c_str());
+				lua_pushstring(L, message.c_str());
 
 				if (0 != lua_pcall(L, 1, 0, 0))
 				{
-					lemonE(logger, "call exec output callback function error :%s",lua_tostring(L,-1));
+					lemonE(logger, "call exec output callback function error :%s", lua_tostring(L, -1));
 				}
 			}
-
-			_stream.str();
 		}
+
 
 		void close(lua_State *L)
 		{
@@ -155,8 +145,6 @@ namespace lemoon { namespace os{
 
 	private:
 		int						_out;
-		std::stringstream		_stream;
-		std::mutex				_mutex;
 	};
 
     int lua_exec_start(lua_State *L)
@@ -194,8 +182,6 @@ namespace lemoon { namespace os{
         auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
 		auto exit_code = cmd->wait();
-
-		cmd->flush(L);
 
         lua_pushinteger(L,exit_code);
 
@@ -238,7 +224,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(std::string(recv_buff, recv_buff + trans));
+				c->callback(L,std::string(recv_buff, recv_buff + trans));
 				lua_exec_out_callback(L,c);
 
 				return;
@@ -255,7 +241,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(std::string(recv_buff, recv_buff + trans));
+				c->callback(L,std::string(recv_buff, recv_buff + trans));
 				lua_exec_err_callback(L, c);
 
 				return;

@@ -1,11 +1,13 @@
 #ifndef LEMON_OS_ERRORS_HPP
 #define LEMON_OS_ERRORS_HPP
+
+#include <string>
 #include <system_error>
 
 namespace lemon{ namespace os{
         enum class errc
         {
-            command_not_found
+            command_not_found,exec_already_started
         };
 
         class os_error_category : public std::error_category
@@ -23,6 +25,8 @@ namespace lemon{ namespace os{
                 {
                 case errc::command_not_found:
                     return "command execute not found";
+				case errc::exec_already_started:
+					return "exec already started";
                 }
 
 				return "unknown";
@@ -44,7 +48,7 @@ namespace lemon{ namespace os{
             }
         };
 
-        inline std::error_code is_error_code_enum(lemon::os::errc err)
+        inline std::error_code make_error_code(lemon::os::errc err)
         {
             static os_error_category os_error_category;
 
