@@ -4,16 +4,16 @@ local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local module    = {}
 
-function module.ctor (loader)
+function module.ctor (gsmake)
     local obj = {
-        Loader          = loader    ; -- gsmake loader belongs to
+        gsmake          = gsmake    ;
     }
 
     return obj
 end
 
 function module:get_sync_executor(name,version)
-    for _,remote in pairs(self.Loader.GSMake.Remotes) do
+    for _,remote in pairs(self.gsmake.Remotes) do
 
         local url = regex.gsub(name,remote.Pattern,remote.URL)
 
@@ -21,7 +21,7 @@ function module:get_sync_executor(name,version)
 
             local executorName = string.format("sync.%s",remote.Sync)
 
-            local ok, executor = pcall(class.new,executorName,self.Loader.GSMake,name,version)
+            local ok, executor = pcall(class.new,executorName,self.gsmake,name,version)
 
             if not ok then
                 throw("load sync executor %s err :\n\t%s",executorName,executor)
@@ -59,7 +59,7 @@ end
 
 -- sync package's
 function module:sync (name,version)
-    local repoDB    = self.Loader.GSMake.Repo
+    local repoDB    = self.gsmake.Repo
 
     local path,ok = repoDB:query_source(name,version)
     if ok and fs.exists(path) then
