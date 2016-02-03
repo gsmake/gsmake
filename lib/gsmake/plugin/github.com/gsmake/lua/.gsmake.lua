@@ -13,7 +13,7 @@ task.install = function(self,install_path)
 
 	logger:I("install path :%s",install_path)
 
-	local targetPath  =  filepath.join(install_path,"gsmake",name)
+	local targetPath  =  filepath.join(install_path,"gsmake")
 
 	local srcDir = filepath.join(packagePath,"src/plugin/lua")
 

@@ -10,7 +10,7 @@ function module.ctor(env,plugin,path)
 
     env.loader = plugin.Loader
 
-    env.package.spath = string.format("%s;%s/?.lua",env.package.spath,path)
+    env.package.spath = string.format("%s;%s/gsmake/?.lua;%s/gsmake/?/init.lua;%s/lib/?.lua;%s/lib/?/init.lua",env.package.spath,path,path,path,path)
     -- env.package.cpath = string.format("%s;%s/?%s",env.package.cpath,path,sys.SO_NAME)
 
     local task_metatable = {

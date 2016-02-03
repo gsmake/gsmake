@@ -89,7 +89,7 @@ task.install = function(self,install_path)
         end
     end
 
-    local targetPath  =  filepath.join(install_path,"gsmake",name)
+    local targetPath  =  filepath.join(install_path,"gsmake")
 
     for _,dir in pairs(pluginSrcDirs) do
         local srcDir = filepath.join(packagePath,dir)

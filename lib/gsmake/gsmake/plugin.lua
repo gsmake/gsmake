@@ -55,16 +55,14 @@ function module:setup()
     logger:I("[%s:%s] setup plugin package [%s:%s]\n\tpath :%s",self.Owner.Name,self.Owner.Version,self.Name,self.Version,self.Package.Path)
     self.Loader:setup()
     logger:I("[%s:%s] setup plugin package [%s:%s] -- success\n\tpath :%s",self.Owner.Name,self.Owner.Version,self.Name,self.Version,self.Package.Path)
-
-
-    -- first install plugin into target path
-    logger:I("[%s:%s] install plugin package [%s:%s]\n\tinstall path :%s",self.Owner.Name,self.Owner.Version,self.Name,self.Version,self.Owner.Loader.Temp)
-    self.Loader:run("install",self.Owner.Loader.Temp)
-    logger:I("[%s:%s] install plugin package [%s:%s] -- success\n\tinstall path :%s",self.Owner.Name,self.Owner.Version,self.Name,self.Version,self.Owner.Loader.Temp)
     -- the plugin install path
     self.Path = filepath.join(self.Owner.Loader.Temp,"gsmake",self.Name)
+    -- first install plugin into target path
+    logger:I("[%s:%s] install plugin package [%s:%s]\n\tinstall path :%s",self.Owner.Name,self.Owner.Version,self.Name,self.Version,self.Owner.Loader.Temp)
+    self.Loader:run("install",self.Path)
+    logger:I("[%s:%s] install plugin package [%s:%s] -- success\n\tinstall path :%s",self.Owner.Name,self.Owner.Version,self.Name,self.Version,self.Owner.Loader.Temp)
     -- second load the plugin
-    local pluginMain = filepath.join(self.Path,"plugin.lua")
+    local pluginMain = filepath.join(self.Path,"gsmake","plugin.lua")
 
     local sandbox = class.new("lemoon.sandbox","gsmake.sandbox.plugin",self,self.Path)
 
