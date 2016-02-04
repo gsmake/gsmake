@@ -3,10 +3,10 @@ local class = require "lemoon.class"
 
 local module = {}
 
-function module.ctor(env,path)
+function module.ctor(env,task)
 
     if path then
-        env.package.spath = string.format("%s;%s/?.lua",env.package.spath,path)
+        env.package.path = string.format("%s;%s/?.lua",env.package.path,task.Path)
     end
 
 end

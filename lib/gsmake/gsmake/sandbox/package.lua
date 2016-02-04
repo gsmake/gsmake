@@ -20,7 +20,7 @@ function module.ctor(env,package)
 
     env.plugin = function(name)
         local plugin = class.new("gsmake.plugin",name,package)
-        
+
         package.Plugins[name] = plugin
         return plugin
     end

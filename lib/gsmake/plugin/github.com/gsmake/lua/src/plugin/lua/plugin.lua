@@ -14,6 +14,7 @@ local config = {
 local dependencies_dir = nil
 
 task.resources = function(self)
+
     local properties        = self.Owner.Properties
     local dependencies      = nil
 

@@ -1,121 +1,146 @@
-local fs        = require "lemoon.fs"
-local class     = require "lemoon.class"
-local filepath  = require "lemoon.filepath"
-local logsink   = require "lemoon.logsink"
-local logger    = class.new("lemoon.log","gsmake")
-local console   = class.new("lemoon.log","console")
+-- initialize gsmake's sandbox system
 
+local debug = _G.debug
+local throw = require "lemoon.throw"
 
-local module = {}
+local function createlualoader(filename)
+	local f,err = loadfile(filename)
+	if f == nil then
+		return err
+	end
+	return function()
+		return {
 
-local openlog = function(gsmake)
-
-    local name = "gsmake" .. os.date("-%Y-%m-%d-%H_%M_%S")
-
-    local path = filepath.join(gsmake.Config.Workspace,gsmake.Config.TempDirName,"log")
-
-    if not fs.exists(path) then
-        fs.mkdir(path,true)
-    end
-
-    logsink.file_sink(
-        "gsmake",
-        path,
-        name,
-        ".log",
-        false,
-        1024*1024*10)
+            ["__sandbox"] = function(env)
+                 if env then
+                     debug.setupvalue(f, 1, env)
+                 end
+                 return f()
+             end
+         }
+	end
 end
 
--- create new gsmake runtimes
--- @arg workspace gsmake workspace
-function module.ctor(workspace,env)
+-- lua searcher
+local function luasearcher(name)
 
-    local gsmake = {
-        Config      = class.clone(require "config")     ; -- global config table
-        Remotes     = class.clone(require "remotes")    ; -- remote lists
-        Loaders     = {}                                ; -- package loader's table
-    }
-
-    -- set the gsmake home path
-    gsmake.Config.Home          = os.getenv(env)
-    -- set the machine scope package cached directory
-    gsmake.Config.GlobalRepo    = gsmake.Config.GlobalRepo or filepath.join(gsmake.Config.Home,".repo")
-    -- set the project workspace
-    gsmake.Config.Workspace     = workspace
-
-    if not fs.exists(filepath.join(workspace ,gsmake.Config.PackageFileName)) then
-        gsmake.Config.Workspace = gsmake.Config.Home
-    end
-
-    openlog(gsmake)
-
-    if not fs.exists(gsmake.Config.GlobalRepo) then
-        fs.mkdir(gsmake.Config.GlobalRepo,true) -- create repo directories
-    end
-
-    gsmake.Repo = class.new("gsmake.repo",gsmake,gsmake.Config.GlobalRepo)
-
-    -- cache builtin plugins
-    module.load_system_plugins(gsmake,filepath.join(gsmake.Config.Home,"lib/gsmake/plugin"))
-
-    -- create root package loader
-    local loader = class.new("gsmake.loader",gsmake,gsmake.Config.Workspace)
-
-    gsmake.Loaders[string.format("%s:%s",loader.Package.Name,loader.Package.Version)] = loader
-
-    gsmake.Package = loader.Package
-
-    -- load builtin system commands
-    module.load_system_commands(gsmake,gsmake.Package,filepath.join(gsmake.Config.Home,"lib/gsmake/cmd"))
-
-
-    loader:load()
-    loader:setup()
-
-    return gsmake
+	local filename, err = package.searchpath(name, package.path or "")
+	if filename == nil then
+		return err
+	else
+		return createlualoader(filename)
+	end
 end
 
-function module:load_system_commands(rootPackage,dir)
-    if fs.exists(filepath.join(dir,self.Config.PackageFileName)) then
-        local package = class.new("gsmake.loader",self,dir).Package
-        self.Repo:save_source(package.Name,package.Version,dir,dir,true)
-        local plugin = class.new("gsmake.plugin",package.Name,rootPackage)
-        rootPackage.Plugins[package.Name] = plugin
-        return
+local function resetloaded(loaded)
+    local recover = {}
+
+    for k,v in pairs(_G.package.loaded) do
+        recover[k] = v
+        _G.package.loaded[k] = nil
     end
 
-    fs.list(dir,function(entry)
-        if entry == "." or entry == ".." then return end
+    for k,v in pairs(loaded) do
+        _G.package.loaded[k] = v
+    end
 
-        local path = filepath.join(dir,entry)
+    return recover
+end
 
-        if fs.isdir(path) then
-            module.load_system_commands(self,rootPackage,path)
+local preload = resetloaded(_G.package.loaded)
+
+local sandbox = {}
+
+function sandbox.new(name,...)
+
+    local env = {}
+
+    for k,v in pairs(_G) do
+        env[k] = v
+    end
+
+    env.package         = {}
+
+    for k,v in pairs(_G.package) do
+        env.package[k] = v
+    end
+
+    env.package.loaded      = preload
+    env.package.preload     = {}
+    env.package.searchers   = { luasearcher }
+
+    -- create new require
+    env.require = function(name)
+
+        local idx = 1
+        while true do
+            local name,val = debug.getupvalue(luasearcher,idx)
+            if not name then break end
+
+            if name == "_ENV" then
+                debug.setupvalue(luasearcher,idx,env)
+                break
+            end
+
+            idx = idx + 1
         end
-    end)
-end
 
-function module:load_system_plugins(dir)
-    if fs.exists(filepath.join(dir,self.Config.PackageFileName)) then
-        local package = class.new("gsmake.loader",self,dir).Package
-        self.Repo:save_source(package.Name,package.Version,dir,dir,true)
-        return
+        local reconver = resetloaded(env.package.loaded)
+        debug.setupvalue(_G.require,1,env.package)
+        local block = _G.require(name)
+        env.package.loaded = resetloaded(reconver)
+
+        if type(block) == "table" and type(block["__sandbox"]) == "function" then
+            block = block["__sandbox"](env)
+        end
+
+        return block
     end
 
-    fs.list(dir,function(entry)
-        if entry == "." or entry == ".." then return end
+    if name then
+        require(name).ctor(env,...)
+    end
 
-        local path = filepath.join(dir,entry)
+    -- create sandbox env cached buff
+    sandbox[env] = {}
 
-        if fs.isdir(path) then
-            module.load_system_plugins(self,path)
+    return env
+end
+
+local function runfunction(call,env,...)
+	local idx = 1
+	while true do
+        local name,_ = debug.getupvalue(call, idx)
+
+        if not name then break end
+
+        if name == "_ENV" then
+            debug.setupvalue(call,idx,env)
+            break
         end
-    end)
+
+        idx = idx + 1
+    end
+
+	return call(...)
 end
 
-function module:run (...)
-    return self.Package.Loader:run(...)
+local function runscript(script,env)
+	 local block,err = loadfile(script,"bt",env)
+
+	 if err ~= nil then
+        throw(err)
+     end
+
+    return block()
 end
 
-return module
+function sandbox.run(block,env,...)
+	if type(block) == "function" then
+		runfunction(block,env,...)
+	else
+		runscript(block,env,...)
+	end
+end
+
+_G.sandbox = sandbox

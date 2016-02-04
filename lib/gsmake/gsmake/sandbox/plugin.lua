@@ -10,17 +10,15 @@ function module.ctor(env,plugin,path)
 
     env.loader = plugin.Loader
 
-    env.package.spath = string.format("%s;%s/gsmake/?.lua;%s/gsmake/?/init.lua;%s/lib/?.lua;%s/lib/?/init.lua",env.package.spath,path,path,path,path)
+    env.package.path = string.format("%s;%s/gsmake/?.lua;%s/gsmake/?/init.lua;%s/lib/?.lua;%s/lib/?/init.lua",env.package.path,path,path,path,path)
 
     if sys.host() == "Windows" then
-        env.package.scpath = string.format("%s;%s/bin/?.dll",env.package.spath,path)
+        env.package.cpath = string.format("%s;%s/bin/?.dll",env.package.cpath,path)
     elseif sys.host() == "OSX" then
-        env.package.scpath = string.format("%s;%s/bin/?.dylib",env.package.spath,path)
+        env.package.cpath = string.format("%s;%s/bin/?.dylib",env.package.cpath,path)
     else
-        env.package.scpath = string.format("%s;%s/lib/?.so",env.package.spath,path)
+        env.package.cpath = string.format("%s;%s/lib/?.so",env.package.cpath,path)
     end
-
-    -- env.package.cpath = string.format("%s;%s/?%s",env.package.cpath,path,sys.SO_NAME)
 
     local task_metatable = {
         __index = function(ctx,name)

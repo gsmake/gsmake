@@ -64,9 +64,9 @@ function module:setup()
     -- second load the plugin
     local pluginMain = filepath.join(self.Path,"gsmake","plugin.lua")
 
-    local sandbox = class.new("lemoon.sandbox","gsmake.sandbox.plugin",self,self.Path)
+    local env = sandbox.new("gsmake.sandbox.plugin",self,self.Path)
 
-    sandbox:run(pluginMain)
+    sandbox.run(pluginMain,env)
 end
 
 return module
