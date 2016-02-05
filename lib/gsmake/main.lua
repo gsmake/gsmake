@@ -11,7 +11,7 @@ local class     = require "lemoon.class"
 local console   = class.new("lemoon.log","console")
 --
 --
-local main = function  (args)
+local main = function  ()
     local gsmake = class.new("gsmake.gsmake",fs.dir(),"GSMAKE_HOME")
 
     gsmake:run(table.unpack(arg))

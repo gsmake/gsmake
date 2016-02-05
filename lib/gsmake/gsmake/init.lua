@@ -1,7 +1,10 @@
 -- initialize gsmake's sandbox system
 
-local debug = _G.debug
-local throw = require "lemoon.throw"
+local debug 		= _G.debug
+local loadfile 	= _G.loadfile
+local loadlib   = _G.package.loadlib
+local throw 		= require "lemoon.throw"
+
 
 local function createlualoader(filename)
 	local f,err = loadfile(filename)
@@ -25,12 +28,45 @@ end
 local function luasearcher(name)
 
 	local filename, err = package.searchpath(name, package.path or "")
+
 	if filename == nil then
 		return err
 	else
 		return createlualoader(filename)
 	end
 end
+
+
+local function createcloader(path,name)
+
+	local f,err = loadlib(path,name)
+	if f == nil then
+		return err
+	end
+	return function()
+		return {
+            ["__sandbox"] = function(env)
+                 if env then
+                     debug.setupvalue(f, 1, env)
+                 end
+                 return f()
+             end
+         }
+	end
+end
+
+-- lua searcher
+local function csearcher(name)
+
+	local filename, err = package.searchpath(name, package.cpath or "")
+	if filename == nil then
+		return err
+	else
+		return createcloader(filename,"luaopen_" .. name)
+	end
+end
+
+
 
 local function resetloaded(loaded)
     local recover = {}
@@ -67,7 +103,7 @@ function sandbox.new(name,...)
 
     env.package.loaded      = preload
     env.package.preload     = {}
-    env.package.searchers   = { luasearcher }
+    env.package.searchers   = {  csearcher, luasearcher }
 
     -- create new require
     env.require = function(name)
