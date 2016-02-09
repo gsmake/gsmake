@@ -69,11 +69,34 @@ function module.ctor(workspace,env)
     -- load builtin system commands
     module.load_system_commands(gsmake,gsmake.Package,filepath.join(gsmake.Config.Home,"lib/gsmake/cmd"))
 
+    -- load builtin system downloaders
+    module.load_system_downloaders(gsmake,filepath.join(gsmake.Config.Home,"lib/gsmake/sync"))
+
 
     loader:load()
     loader:setup()
 
     return gsmake
+end
+
+function module:load_system_downloaders(dir)
+
+    if fs.exists(filepath.join(dir,self.Config.PackageFileName)) then
+        local loader = class.new("gsmake.loader",self,dir)
+        local package = loader:load()
+        self.Repo:save_source(package.Name,package.Version,dir,dir,true)
+        return
+    end
+
+    fs.list(dir,function(entry)
+        if entry == "." or entry == ".." then return end
+
+        local path = filepath.join(dir,entry)
+
+        if fs.isdir(path) then
+            module.load_system_downloaders(self,path)
+        end
+    end)
 end
 
 function module:load_system_commands(rootPackage,dir)

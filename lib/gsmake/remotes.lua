@@ -1,7 +1,7 @@
 return {
     ["github.com"] = {
 
-        Sync = "git",
+        Downloader = { name = "github.com/gsmake/git" },
 
         URL = [=[https://$1.git]=],
 

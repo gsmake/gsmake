@@ -173,9 +173,9 @@ end
 
 function sandbox.run(block,env,...)
 	if type(block) == "function" then
-		runfunction(block,env,...)
+		return runfunction(block,env,...)
 	else
-		runscript(block,env,...)
+		return runscript(block,env,...)
 	end
 end
 

@@ -21,5 +21,5 @@ end
 local ok,msg = pcall(main)
 
 if not ok then
-    console:E(msg)
+    console:E("%s",msg)
 end
