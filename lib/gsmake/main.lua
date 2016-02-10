@@ -12,9 +12,9 @@ local console   = class.new("lemoon.log","console")
 --
 --
 local main = function  ()
-    local gsmake = class.new("gsmake.gsmake",fs.dir(),"GSMAKE_HOME")
+    local gsmake = class.new("gsmake.gsmake",fs.dir(),"GSMAKE_HOME",arg)
 
-    gsmake:run(table.unpack(arg))
+    gsmake:run()
 end
 
 

@@ -30,6 +30,7 @@ function module:geturl(name,version,remotes)
 
         if remote.Pattern then
             url = regex.gsub(name,remote.Pattern,remote.URL)
+            if url == name then url = nil end
         elseif remote.Match == name then
             url = remote.URL
         end

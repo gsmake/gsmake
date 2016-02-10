@@ -1,5 +1,8 @@
 local fs        = require "lemoon.fs"
+local host      = require "gsmake.host"
+local arch      = require "gsmake.arch"
 local class     = require "lemoon.class"
+local throw     = require "lemoon.throw"
 local filepath  = require "lemoon.filepath"
 local logsink   = require "lemoon.logsink"
 local logger    = class.new("lemoon.log","gsmake")
@@ -27,15 +30,75 @@ local openlog = function(gsmake)
         1024*1024*10)
 end
 
+
+local options = {
+
+    ["^-host"] = function (gsmake,val)
+        if not host[val] then
+            console:W("TargetHost(%s) not changed : unsupport host %s",gsmake.Config.TargetHost,val)
+            return
+        end
+
+        gsmake.Config.TargetHost = val
+    end;
+
+    ["^-arch"] = function (gsmake,val)
+        if not arch[val] then
+            console:W("TargetArch(%s) not changed : unsupport arch %s",gsmake.Config.TargetArch,val)
+            return
+        end
+
+        gsmake.Config.TargetArch = val
+    end;
+}
+
+
+local function parseoptions (gsmake,args)
+
+    local skip = false
+
+    for i,arg in ipairs(args) do
+        if not skip then
+            local stop = true
+            for option,call in pairs(options) do
+                if arg:match(option) then
+                    local val = arg:sub(#option)
+                    if not val or val == "" then
+                        val = args[i + 1]
+                        skip = true
+                    end
+
+                    if not val  or val == ""  then
+                        throw("expect option(%s)'s val ",option:sub(2))
+                    end
+                    call(gsmake,val)
+                    stop = false
+                    break
+                end
+            end
+
+            if stop then
+                return table.pack(table.unpack(args,i))
+            end
+        else
+            skip = false
+        end
+    end
+
+    return {}
+end
+
 -- create new gsmake runtimes
 -- @arg workspace gsmake workspace
-function module.ctor(workspace,env)
+function module.ctor(workspace,env,args)
 
     local gsmake = {
         Config      = class.clone(require "config")     ; -- global config table
         Remotes     = class.clone(require "remotes")    ; -- remote lists
         Loaders     = {}                                ; -- package loader's table
     }
+
+    gsmake.args                 = parseoptions(gsmake,args)
 
     -- set the gsmake home path
     gsmake.Config.Home          = os.getenv(env)
@@ -75,6 +138,9 @@ function module.ctor(workspace,env)
 
     loader:load()
     loader:setup()
+
+    console:I("gsmake target host %s",gsmake.Config.TargetHost)
+    console:I("gsmake target arch %s",gsmake.Config.TargetArch)
 
     return gsmake
 end
@@ -137,8 +203,8 @@ function module:load_system_plugins(dir)
     end)
 end
 
-function module:run (...)
-    return self.Package.Loader:run(...)
+function module:run ()
+    return self.Package.Loader:run(table.unpack(self.args))
 end
 
 return module
