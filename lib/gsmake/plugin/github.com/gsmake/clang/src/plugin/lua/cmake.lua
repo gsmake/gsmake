@@ -167,7 +167,7 @@ function module:gen_cmake_files ()
         external_libs           = filepath.join(self.outputdir,"lib");
         projects                = self.projects;
         tests                   = self.tests;
-        target_host             = loader.Config.GSMAKE_TARGET_HOST;
+        target_host             = loader.Config.TargetHost;
     })
 
     for _,project in pairs(self.projects) do

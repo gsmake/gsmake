@@ -2,37 +2,77 @@ local fs        = require "lemoon.fs"
 local regex     = require "lemoon.regex"
 local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
+local filepath  = require "lemoon.filepath"
 local module    = {}
 
-function module.ctor (gsmake)
+function module.ctor (loader)
     local obj = {
-        gsmake          = gsmake    ;
+        loader          = loader                                ; -- the package loader belongs to
+        remotes         = class.clone(loader.GSMake.Remotes)    ;
+        localremotes    = {}                                    ; -- locall remotes config
     }
+
+    local remotesfile = filepath.join(loader.Path,".remotes.lua")
+
+    if fs.exists(remotesfile) then
+        local env = sandbox.new("gsmake.sandbox.remotes")
+
+        obj.localremotes = sandbox.run(remotesfile,env)
+    end
 
     return obj
 end
 
-function module:get_sync_executor(name,version)
-    for _,remote in pairs(self.gsmake.Remotes) do
+function module:geturl(name,version,remotes)
+    local url = nil
 
-        local url = regex.gsub(name,remote.Pattern,remote.URL)
+    for _,remote in pairs(remotes) do
 
-        if url ~= name then
+        if remote.Pattern then
+            url = regex.gsub(name,remote.Pattern,remote.URL)
+            if url == name then url = nil end
+        elseif remote.Match == name then
+            url = remote.URL
+        end
 
-            local executorName = string.format("sync.%s",remote.Sync)
-
-            local ok, executor = pcall(class.new,executorName,self.gsmake,name,version)
-
-            if not ok then
-                throw("load sync executor %s err :\n\t%s",executorName,executor)
+        if url ~= nil then
+            local downloader = remote.Downloader
+            if downloader.version == nil then
+                downloader.version = self.loader.Config.DefaultVersion
             end
 
-            return true,executor,url
+            return url:gsub("%${version}",version),remote.Downloader
         end
+    end
+end
+
+function module:get_sync_executor(name,version)
+
+    local url,downloader = self:geturl(name,version,self.localremotes)
+
+    if not url then
+        url,downloader = self:geturl(name,version,self.remotes)
+    end
+
+    if url then
+        local path = self:sync(downloader.name,downloader.version)
+
+        local plugin = class.new("gsmake.plugin",downloader.name,self.loader.Package)
+        plugin:version(downloader.version)
+        plugin:load()
+        plugin:setup()
+
+        local loader = plugin.Loader
+        local package = plugin.Package
+        package.Plugins[package.Name] = plugin
+
+        return true,loader,url
     end
 
     return false
 end
+
+
 
 function module:sync_remote(name,version)
 
@@ -42,7 +82,9 @@ function module:sync_remote(name,version)
         throw("sync package '%s:%s' -- failed,unknown remote site ",name,version)
     end
 
-    executor:sync_remote(url)
+    if executor:run("sync_remote",name,version,url) then
+        throw("sync package '%s:%s' -- failed",name,version)
+    end
 end
 
 function module:sync_source(name,version)
@@ -53,13 +95,20 @@ function module:sync_source(name,version)
         throw("sync package '%s:%s' -- failed,unknown remote site ",name,version)
     end
 
-    return executor:sync_source()
+    if executor:run("sync_source",name,version) then
+        throw("sync package '%s:%s' -- failed",name,version)
+    end
+    local repoDB    = self.loader.GSMake.Repo
+    local path,ok = repoDB:query_source(name,version)
+    assert(ok,string.format("detect downloader[%s:%s] bug",executor.Package.Name,executor.Package.Version))
+    return path
 end
 
 
 -- sync package's
 function module:sync (name,version)
-    local repoDB    = self.gsmake.Repo
+
+    local repoDB    = self.loader.GSMake.Repo
 
     local path,ok = repoDB:query_source(name,version)
     if ok and fs.exists(path) then
