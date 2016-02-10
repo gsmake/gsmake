@@ -123,7 +123,10 @@ function sandbox.new(name,...)
 
         local reconver = resetloaded(env.package.loaded)
         debug.setupvalue(_G.require,1,env.package)
-        local block = _G.require(name)
+        local ok, block = pcall(_G.require,name)
+		if not ok then
+			throw("%s",block)
+		end
         env.package.loaded = resetloaded(reconver)
 
         if type(block) == "table" and type(block["__sandbox"]) == "function" then

@@ -3,6 +3,7 @@
 #include <mutex>
 #include <locale>
 #include <cassert>
+#include <sstream>
 
 #include <lua/lua.hpp>
 #include <lemon/os/os.hpp>
@@ -169,7 +170,9 @@ namespace lemoon { namespace os{
         }
         catch(const std::exception &e)
         {
-            return luaL_error(L,"call lemon::os::exec#start method error :%s",e.what());
+			
+
+            return luaL_error(L, "call lemon::os::exec#start method error :%s",e.what());
         }
 
 
@@ -188,6 +191,12 @@ namespace lemoon { namespace os{
         return 1;
     }
 
+	int lua_exec_run(lua_State *L)
+	{
+		lua_exec_start(L);
+		return lua_exec_wait(L);
+	}
+
     int exec_dir(lua_State *L)
     {
 		auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
@@ -201,6 +210,7 @@ namespace lemoon { namespace os{
         {"start",lua_exec_start},
         {"dir",exec_dir},
         {"wait",lua_exec_wait},
+		{ "run",lua_exec_run },
         {NULL, NULL}
     };
 
@@ -326,13 +336,42 @@ namespace lemoon { namespace os{
         return 1;
     }
 
+	int setenv(lua_State *L)
+	{
+
+		std::error_code ec;
+		lemon::os::setenv(luaL_checkstring(L, 1), luaL_checkstring(L, 2),ec);
+
+		if (ec)
+		{
+			return luaL_error(L, "call lemon::os::exec method error :%s", ec.message().c_str());
+		}
+
+		return 0;
+	}
+
+	int getenv(lua_State *L)
+	{
+		auto ret = lemon::os::getenv(luaL_checkstring(L, 1));
+
+		if (std::get<1>(ret))
+		{
+			lua_pushstring(L,std::get<0>(ret).c_str());
+
+			return 1;
+		}
+
+		return 0;
+	}
 
     static luaL_Reg os[] = {
 		{ "lookup",lookup },
 		{ "exec",lua_exec },
 		{ "host",hostname },
 		{ "arch",arch },
-		{ "tmpdir",tmpdir },
+		{ "tmpdir",tmpdir },	
+		{ "setenv",setenv },
+		{ "getenv",getenv },
         {NULL, NULL}
     };
 }}

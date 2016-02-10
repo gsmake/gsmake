@@ -86,9 +86,9 @@ task.sync_remote = function(self,name,version,remote)
 
     local repo = loader.GSMake.Repo
 
-    repo:save_sync(name,version,remote,target,"git")
+    repo:save_sync(name,version,remote,target,"git",true)
 
-    repo:save_source(name,version,target,sourceTarget)
+    repo:save_source(name,version,target,sourceTarget,true)
 end
 task.sync_remote.Desc = "git downloader#sync_remote"
 task.sync_remote.Prev = "sync_init"

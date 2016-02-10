@@ -88,6 +88,19 @@ namespace lemon { namespace os {
 
         return std::make_tuple(convert().to_bytes(&buff[0]), true);
     }
+
+	void setenv(const std::string &name, const std::string &val,std::error_code &ec)
+	{
+		auto namew = convert().from_bytes(name);
+
+		auto valnew = convert().from_bytes(val);
+
+		if (!::SetEnvironmentVariableW(namew.c_str(), valnew.c_str()))
+		{
+			ec = std::error_code(GetLastError(),std::system_category());
+		}
+	}
+
     #else
 
     std::tuple<std::string,bool> getenv(const std::string &name)
@@ -101,6 +114,14 @@ namespace lemon { namespace os {
 
         return std::make_tuple(std::string(), false);
     }
+
+	void setenv(const std::string &name, const std::string &val, std::error_code &ec)
+	{
+		if (-1 == setenv(name.c_str(), val.c_str(), 1))
+		{
+			ec = std::make_error_code(errno, std::system_category());
+		}
+	}
 
     #endif //WIN32
 

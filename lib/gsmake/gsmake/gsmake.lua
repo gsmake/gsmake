@@ -100,6 +100,10 @@ function module.ctor(workspace,env,args)
 
     gsmake.args                 = parseoptions(gsmake,args)
 
+    console:I("gsmake target host %s",gsmake.Config.TargetHost)
+    console:I("gsmake target arch %s",gsmake.Config.TargetArch)
+
+
     -- set the gsmake home path
     gsmake.Config.Home          = os.getenv(env)
     -- set the machine scope package cached directory
@@ -139,8 +143,6 @@ function module.ctor(workspace,env,args)
     loader:load()
     loader:setup()
 
-    console:I("gsmake target host %s",gsmake.Config.TargetHost)
-    console:I("gsmake target arch %s",gsmake.Config.TargetArch)
 
     return gsmake
 end
