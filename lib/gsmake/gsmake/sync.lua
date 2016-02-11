@@ -100,7 +100,7 @@ function module:sync_source(name,version)
         throw("sync package '%s:%s' -- failed",name,version)
     end
     local repoDB    = self.loader.GSMake.Repo
-    local path,ok = repoDB:query_source(name,version)
+    local ok,path = repoDB:query_source(name,version)
     print(name,version)
     assert(ok,string.format("detect downloader[%s:%s] bug",executor.Package.Name,executor.Package.Version))
     return path
@@ -112,12 +112,13 @@ function module:sync (name,version)
 
     local repoDB    = self.loader.GSMake.Repo
 
-    local path,ok = repoDB:query_source(name,version)
+    local ok,path,cached = repoDB:query_source(name,version)
+
     if ok and fs.exists(path) then
         return path
     end
 
-    path,ok = repoDB:query_sync(name,version)
+    ok,path = repoDB:query_sync(name,version)
 
     if ok and fs.exists(path) then
         path = self:sync_source(name,version)

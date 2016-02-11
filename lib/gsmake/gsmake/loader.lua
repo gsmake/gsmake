@@ -33,7 +33,7 @@ function module.ctor (gsmake,path,name,version)
     module.loadconfig(loader)
 
     -- load loader db
-    loader.DB   = class.new("gsmake.loaderdb",loader,loader.Temp)
+    loader.DB   = class.new("gsmake.plugindb",loader,loader.Temp)
     -- load loader's sync engine
     loader.Sync =  class.new("gsmake.sync",loader)
 

@@ -22,6 +22,7 @@ end
 function module:run(name,...)
 
     for _,plugin in pairs(self.package.Plugins or {}) do
+
         for name,task in pairs(plugin.Tasks or {}) do
 
             if self.taskGroups[name] == nil then
@@ -40,7 +41,6 @@ function module:run(name,...)
             table.insert(self.taskGroups[name],task)
         end
     end
-
 
     for name,taskgroup in pairs(self.taskGroups) do
         logger:D("register taskgroup(%s) :",name)

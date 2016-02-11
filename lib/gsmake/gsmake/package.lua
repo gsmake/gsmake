@@ -21,11 +21,9 @@ function module.ctor (loader,path,name,version)
     local gsmakeFilePath = filepath.join(path,loader.Config.PackageFileName)
 
     if fs.exists(gsmakeFilePath) then
-        logger:D("loading gsmake package\n\t%s",gsmakeFilePath)
         -- local sandbox = class.new("lemoon.sandbox","gsmake.sandbox.package",package)
         local env = sandbox.new("gsmake.sandbox.package",package)
         sandbox.run(gsmakeFilePath,env)
-        logger:D("load gsmake package -- success\n\t%s",gsmakeFilePath)
     else
         package.External = true
     end

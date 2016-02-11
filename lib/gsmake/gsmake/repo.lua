@@ -3,6 +3,7 @@ local throw     = require "lemoon.throw"
 local class     = require "lemoon.class"
 local filepath  = require "lemoon.filepath"
 local sqlite3   = require "lemoon.sqlite3"
+local logger    = class.new("lemoon.log","gsmake")
 local module    = {}
 
 local sqlexec = function(db,sql)
@@ -22,6 +23,8 @@ function module.ctor (gsmake,path)
         Path            = path                              ; -- the global package cached repo path
         dbPath          = filepath.join(path,"repo.db")     ; -- database fullpath
     }
+
+    obj.db = assert(sqlite3.open(obj.dbPath)) ;
 
     module.exec(obj,function(db)
         sqlexec(db, [[
@@ -51,7 +54,7 @@ end
 
 function module:exec (f)
 
-    local db = assert(sqlite3.open(self.dbPath))
+    local db = assert(sqlite3.open(self.dbPath)) ;
 
     local result = { f(db) }
 
@@ -64,11 +67,11 @@ function module:query_source(name,version)
     local SQL = string.format('SELECT * FROM _SOURCE WHERE _NAME="%s" and _VERSION="%s"',name,version)
 
     return self:exec(function(db)
-        for _,path,_,_ in db:urows(SQL) do
-            return path,true
+        for _,path,_,_,cached in db:urows(SQL) do
+            return true,path,cached == 1
         end
 
-        return "",false
+        return false
     end)
 end
 
@@ -77,10 +80,9 @@ function module:query_sync(name,version)
 
     return self:exec(function(db)
         for _,path,_,_,_ in db:urows(SQL) do
-            return path,true
+            return true,path
         end
-
-        return "",false
+        return false
     end)
 end
 

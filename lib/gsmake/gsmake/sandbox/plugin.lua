@@ -8,7 +8,7 @@ function module.ctor(env,plugin,path)
 
     env.task = {}
 
-    env.loader = plugin.Loader
+    env.loader = plugin.Owner.Loader
 
     env.package.path = string.format("%s;%s/gsmake/?.lua;%s/gsmake/?/init.lua;%s/lib/?.lua;%s/lib/?/init.lua",env.package.path,path,path,path,path)
 

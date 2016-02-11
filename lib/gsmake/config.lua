@@ -6,4 +6,6 @@ return {
     SkipDirs                = { ".gsmake",".git", ".svn" };
     TargetHost              = require "lemoon.sys" .host();
     TargetArch              = require "lemoon.sys" .arch();
+    Host                    = require "lemoon.sys" .host();
+    Arch                    = require "lemoon.sys" .arch();
 }

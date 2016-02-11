@@ -105,9 +105,9 @@ namespace lemoon{namespace{
 
         auto path = luaL_checkstring(L,1);
 
-        if(lua_type(L,2) != LUA_TNONE && lua_type(L,2) != LUA_TNIL)
+        if(lua_type(L,2) == LUA_TBOOLEAN && lua_toboolean(L,2) )
         {
-            if(lemon::fs::is_directory(path))
+            if(lemon::fs::is_directory(path) && !lemon::fs::is_symlink(path))
             {
                 lemon::fs::remove_directories(path,err);
 

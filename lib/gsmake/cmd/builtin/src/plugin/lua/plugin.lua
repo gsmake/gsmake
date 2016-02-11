@@ -6,9 +6,9 @@ task.list = function(self)
     local tasks = self.Owner.ValidTasks
 
     for name,taskgroup in pairs(tasks) do
-        console:I("task %s :",name)
+        print(string.format("task %s :",name))
         for _,task in ipairs(taskgroup or {}) do
-            console:I("\t%s\n\t\tfrom package [%s:%s]",task.Desc,task.Package.Name,task.Package.Version)
+            print(string.format("\t%s\n\t\tfrom package [%s:%s]",task.Desc,task.Package.Name,task.Package.Version))
         end
     end
 end
