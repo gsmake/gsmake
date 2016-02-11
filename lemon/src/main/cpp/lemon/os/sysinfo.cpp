@@ -188,10 +188,10 @@ namespace lemon { namespace os {
 
     #ifdef WIN32
         const std::string delimiter = ";";
-        const std::string extend = ".exe";
+		const std::vector<std::string> extends = { ".exe",".cmd",".bat",".com" };
     #else
         const std::string delimiter = ":";
-        const std::string extend = "";
+		const std::vector<std::string> extends = { "" };
     #endif //WIN32
 
         auto paths = strings::split(std::get<0>(path), delimiter);
@@ -209,12 +209,16 @@ namespace lemon { namespace os {
 
         for(auto p : paths)
         {
-            auto fullPath = fs::filepath(p) / (cmd + extend);
+			for (auto extend : extends)
+			{
+				auto fullPath = fs::filepath(p) / (cmd + extend);
 
-            if(fs::exists(fullPath))
-            {
-                return std::make_tuple(fullPath.string(), true);
-            }
+				if (fs::exists(fullPath))
+				{
+					return std::make_tuple(fullPath.string(), true);
+				}
+			}
+           
         }
 
         return std::make_tuple(std::string(), false);

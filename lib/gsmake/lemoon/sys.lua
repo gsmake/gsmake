@@ -10,7 +10,7 @@ end
 module.EXE_NAME = ""
 
 if module.host() == "Windows" then
-    module.SO_NAME = ".exe"
+    module.EXE_NAME = ".exe"
 end
 
 return module

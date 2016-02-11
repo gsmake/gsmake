@@ -85,6 +85,7 @@ function module:sync_remote(name,version)
     if executor:run("sync_remote",name,version,url) then
         throw("sync package '%s:%s' -- failed",name,version)
     end
+
 end
 
 function module:sync_source(name,version)
@@ -100,6 +101,7 @@ function module:sync_source(name,version)
     end
     local repoDB    = self.loader.GSMake.Repo
     local path,ok = repoDB:query_source(name,version)
+    print(name,version)
     assert(ok,string.format("detect downloader[%s:%s] bug",executor.Package.Name,executor.Package.Version))
     return path
 end
