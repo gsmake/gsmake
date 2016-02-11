@@ -124,7 +124,7 @@ namespace lemoon{namespace{
 
         if(err)
         {
-            return luaL_error(L,"[lemoon.fs] call emon::fs::remove_file error :%s",err.message().c_str());
+            return luaL_error(L,"[lemoon.fs] remove file(%s) error :%s",path,err.message().c_str());
         }
 
         return 0;
