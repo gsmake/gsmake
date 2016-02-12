@@ -117,9 +117,9 @@ namespace lemon { namespace os {
 
 	void setenv(const std::string &name, const std::string &val, std::error_code &ec)
 	{
-		if (-1 == setenv(name.c_str(), val.c_str(), 1))
+		if (-1 == ::setenv(name.c_str(), val.c_str(), 1))
 		{
-			ec = std::make_error_code(errno, std::system_category());
+			ec = std::error_code(errno, std::system_category());
 		}
 	}
 

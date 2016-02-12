@@ -144,6 +144,35 @@ namespace lemon{ namespace fs {
             return (std::uintmax_t)from_stat.st_size;
         }
 
+        file_status status(const filepath & path, std::error_code & ec) noexcept
+        {
+            struct stat path_stat;
+            if (::stat(path.generic_string().c_str(), &path_stat)!= 0)
+            {
+                ec = std::error_code(errno,std::system_category());
+
+                return file_status(file_type::unknown);
+            }
+
+            auto p = static_cast<perms>(path_stat.st_mode & (unsigned int)perms::mask);
+
+            if (S_ISDIR(path_stat.st_mode))
+                return fs::file_status(file_type::directory,p);
+            if (S_ISREG(path_stat.st_mode))
+                return fs::file_status(file_type::regular,p);
+            if (S_ISBLK(path_stat.st_mode))
+                return fs::file_status(file_type::block,p);
+            if (S_ISCHR(path_stat.st_mode))
+                return fs::file_status(file_type::character,p);
+            if (S_ISFIFO(path_stat.st_mode))
+                return fs::file_status(file_type::fifo,p);
+            if (S_ISSOCK(path_stat.st_mode))
+                return fs::file_status(file_type::socket,p);
+            if (S_ISLNK(path_stat.st_mode))
+                return fs::file_status(file_type::symlink,p);
+            return file_status(file_type::unknown);
+        }
+
     }
 }
 #endif //WIN32
