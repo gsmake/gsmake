@@ -8,8 +8,8 @@ local console   = class.new("lemoon.log","console")
 
 task.sync_init = function(self)
     if sys.host() == "Windows" then
-        curl = filepath.join(loader.Path,"tools/win32/curl.exe")
-        unzip = filepath.join(loader.Path,"tools/win32/7z.exe")
+        curl = filepath.join(self.Package.Path,"tools/win32/curl.exe")
+        unzip = filepath.join(self.Package.Path,"tools/win32/7z.exe")
     else
         local ok, curlpath = sys.lookup("curl")
         if not ok then
@@ -37,6 +37,8 @@ task.sync_remote = function(self,name,version,url)
     if not fs.exists(workdir) then
         fs.mkdir(workdir,true)
     end
+
+    print(curl)
 
     local exec = sys.exec(curl)
     exec:dir(workdir)
