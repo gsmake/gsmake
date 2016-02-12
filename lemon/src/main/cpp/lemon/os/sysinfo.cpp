@@ -8,6 +8,7 @@
 #include <TargetConditionals.h>
 #endif //
 
+#include <sstream>
 #include <lemon/fs/fs.hpp>
 #include <lemon/strings.hpp>
 #include <lemon/os/sysinfo.hpp>
@@ -117,7 +118,7 @@ namespace lemon { namespace os {
 
 	void setenv(const std::string &name, const std::string &val, std::error_code &ec)
 	{
-		if (-1 == ::setenv(name.c_str(), val.c_str(), 1))
+		if (-1 == ::setenv(name.c_str(), val.c_str(),1))
 		{
 			ec = std::error_code(errno, std::system_category());
 		}

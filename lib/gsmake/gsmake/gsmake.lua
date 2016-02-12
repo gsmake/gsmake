@@ -22,7 +22,7 @@ local openlog = function(gsmake)
     end
 
     logsink.file_sink(
-        "gsmake",
+        "",
         path,
         name,
         ".log",

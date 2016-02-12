@@ -14,7 +14,9 @@ local console   = class.new("lemoon.log","console")
 local main = function  ()
     local gsmake = class.new("gsmake.gsmake",fs.dir(),"GSMAKE_HOME",arg)
 
-    gsmake:run()
+    if gsmake:run() then
+      console:E("run gsmake -- failed !!!!!")
+    end
 end
 
 

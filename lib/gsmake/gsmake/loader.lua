@@ -83,7 +83,7 @@ function module:setup()
 end
 
 function module:run(...)
-    self.runner:run(...)
+    return self.runner:run(...)
 end
 
 

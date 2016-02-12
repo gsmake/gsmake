@@ -130,6 +130,9 @@ namespace lemon{ namespace fs {
                     sz_write += sz;
                 } while (sz_write < sz_read);
             }
+
+            ::close(in);
+            ::close(out);
         }
 
         std::uintmax_t file_size(const filepath& path, std::error_code& ec)

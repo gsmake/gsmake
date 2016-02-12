@@ -42,7 +42,8 @@ namespace lemon{ namespace os{
             switch (_pid)
             {
             case -1:
-                throw std::system_error(errno,std::system_category(),"create stderr pipe error");
+                lemonE(_logger,"catch error :%s", std::error_code(errno,std::system_category()).message().c_str());
+                //throw std::system_error(errno,std::system_category(),"create stderr pipe error");
             case 0:
                 // child process
                 try
@@ -52,13 +53,10 @@ namespace lemon{ namespace os{
                 catch(const std::exception e)
                 {
                     lemonE(_logger,"catch error :%s",e.what());
-                    exit(1);
                 }
 
                 break;
             default:
-                // parent process
-                handlePipe();
                 break;
             }
         }
@@ -162,13 +160,9 @@ namespace lemon{ namespace os{
 
             if (-1 == execv(_path.string().c_str(), (char*const*)argv))
             {
-                throw  std::system_error(errno,std::system_category(),_path.string());
+                printf("exec error:%s\n\t%s\n",_path.string().c_str(),std::error_code(errno,std::system_category()).message().c_str());
+                //throw  std::system_error(errno,std::system_category(),_path.string());
             }
-        }
-
-        void handlePipe()
-        {
-
         }
 
     private:
