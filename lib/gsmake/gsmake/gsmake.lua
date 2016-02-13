@@ -30,100 +30,21 @@ local openlog = function(gsmake)
         1024*1024*10)
 end
 
-
-local options = {
-
-    ["^-host"] = {
-        value = true;
-
-        call = function (gsmake,val)
-            if not host[val] then
-                console:W("TargetHost(%s) not changed : unsupport host %s",gsmake.Config.TargetHost,val)
-                return
-            end
-
-            gsmake.Config.TargetHost = val
-        end
-    };
-
-    ["^-arch"] = {
-        value = true;
-
-        call = function (gsmake,val)
-            if not arch[val] then
-                console:W("TargetArch(%s) not changed : unsupport arch %s",gsmake.Config.TargetArch,val)
-                return
-            end
-
-            gsmake.Config.TargetArch = val
-        end
-    };
-
-    ["^-u"] = {
-        call = function (gsmake)
-            gsmake.Config.Update = true
-        end;
-    }
-}
-
-
-local function parseoptions (gsmake,args)
-
-    local skip = false
-
-    for i,arg in ipairs(args) do
-        if not skip then
-            local stop = true
-            for option,ctx in pairs(options) do
-                if arg:match(option) then
-                    local val = nil
-                    if ctx.value then
-                        val = arg:sub(#option)
-                        if not val or val == "" then
-                            val = args[i + 1]
-                            skip = true
-                        end
-
-                        if not val  or val == ""  then
-                            throw("expect option(%s)'s val ",option:sub(2))
-                        end
-                    end
-
-                    ctx.call(gsmake,val)
-                    stop = false
-                    break
-                end
-            end
-
-            if stop then
-                return table.pack(table.unpack(args,i))
-            end
-        else
-            skip = false
-        end
-    end
-
-    return {}
-end
-
 -- create new gsmake runtimes
 -- @arg workspace gsmake workspace
-function module.ctor(workspace,env,args)
+function module.ctor(config,remotes)
 
     local gsmake = {
-        Config      = class.clone(require "config")     ; -- global config table
-        Remotes     = class.clone(require "remotes")    ; -- remote lists
-        Loaders     = {}                                ; -- package loader's table
+        Config      = config     ; -- global config table
+        Remotes     = remotes    ; -- remote lists
     }
-
-    gsmake.args                 = parseoptions(gsmake,args)
 
     console:I("gsmake target host %s",gsmake.Config.TargetHost)
     console:I("gsmake target arch %s",gsmake.Config.TargetArch)
 
-
+    local workspace = fs.dir()
     -- set the gsmake home path
-    gsmake.Config.Home          = os.getenv(env)
+    gsmake.Config.Home          = os.getenv("GSMAKE_HOME")
     -- set the machine scope package cached directory
     gsmake.Config.GlobalRepo    = gsmake.Config.GlobalRepo or filepath.join(gsmake.Config.Home,".repo")
     -- set the project workspace
@@ -141,35 +62,32 @@ function module.ctor(workspace,env,args)
 
     gsmake.Repo = class.new("gsmake.repo",gsmake,gsmake.Config.GlobalRepo)
 
-    logger:I("load system plugins")
-    -- cache builtin plugins
-    module.load_system_plugins(gsmake,filepath.join(gsmake.Config.Home,"lib/gsmake/plugin"))
-    logger:I("load system plugins -- success")
+    reload = false
 
-    logger:I("load root package")
+    if not fs.exists(gsmake.Repo.Path) or gsmake.Config.Reload then
+        reload = true
+    end
+
+    if reload then
+        -- cache builtin plugins
+        module.load_system_plugins(gsmake,filepath.join(gsmake.Config.Home,"lib/gsmake/plugin"))
+    end
+
     -- create root package loader
     local loader = class.new("gsmake.loader",gsmake,gsmake.Config.Workspace)
 
-    gsmake.Loaders[string.format("%s:%s",loader.Package.Name,loader.Package.Version)] = loader
-
     gsmake.Package = loader.Package
 
-    logger:I("load root package -- success")
-
-    logger:I("load system commands")
     -- load builtin system commands
     module.load_system_commands(gsmake,gsmake.Package,filepath.join(gsmake.Config.Home,"lib/gsmake/cmd"))
-    logger:I("load system commands -- success")
 
-    logger:I("load system downloaders")
-    -- load builtin system downloaders
-    module.load_system_downloaders(gsmake,filepath.join(gsmake.Config.Home,"lib/gsmake/sync"))
-    logger:I("load system downloaders -- success")
+    if reload then
+        -- load builtin system downloaders
+        module.load_system_downloaders(gsmake,filepath.join(gsmake.Config.Home,"lib/gsmake/sync"))
+    end
 
-    logger:I("setup root package")
     loader:load()
     loader:setup()
-    logger:I("setup root package -- success")
 
     return gsmake
 end
@@ -196,7 +114,9 @@ end
 function module:load_system_commands(rootPackage,dir)
     if fs.exists(filepath.join(dir,self.Config.PackageFileName)) then
         local package = class.new("gsmake.loader",self,dir).Package
-        self.Repo:save_cached_source(package.Name,package.Version,dir,dir,true)
+        if reload then
+            self.Repo:save_cached_source(package.Name,package.Version,dir,dir,true)
+        end
         local plugin = class.new("gsmake.plugin",package.Name,rootPackage)
         rootPackage.Plugins[package.Name] = plugin
         return
@@ -231,8 +151,8 @@ function module:load_system_plugins(dir)
     end)
 end
 
-function module:run ()
-    return self.Package.Loader:run(table.unpack(self.args))
+function module:run (...)
+    return self.Package.Loader:run(...)
 end
 
 return module

@@ -49,7 +49,7 @@ function module:setup()
 
     self.Loader:setup()
 
-    if not ok or self.Owner.Loader.Config.Update then
+    if not ok or self.Owner.Loader.Config.Reload then
         -- the plugin install path
         self.Path = filepath.join(self.Owner.Loader.Temp,"gsmake",self.Name)
         -- first install plugin into target path

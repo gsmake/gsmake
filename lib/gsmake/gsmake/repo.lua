@@ -20,11 +20,8 @@ function module.ctor (gsmake,path)
 
     local obj = {
         GSMake          = gsmake                            ;
-        Path            = path                              ; -- the global package cached repo path
-        dbPath          = filepath.join(path,"repo.db")     ; -- database fullpath
+        Path            = filepath.join(path,"repo.db")     ; -- the global package cached repo path
     }
-
-    obj.db = assert(sqlite3.open(obj.dbPath)) ;
 
     module.exec(obj,function(db)
         sqlexec(db, [[
@@ -54,7 +51,7 @@ end
 
 function module:exec (f)
 
-    local db = assert(sqlite3.open(self.dbPath)) ;
+    local db = assert(sqlite3.open(self.Path)) ;
 
     local result = { f(db) }
 
