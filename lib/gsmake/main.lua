@@ -16,6 +16,7 @@ local options = {
         value = true;
 
         call = function (config,val)
+            local host = require "gsmake.host"
             if not host[val] then
                 console:W("TargetHost(%s) not changed : unsupport host %s",gsmake.Config.TargetHost,val)
                 return
@@ -29,6 +30,7 @@ local options = {
         value = true;
 
         call = function (config,val)
+            local arch = require "gsmake.arch"
             if not arch[val] then
                 console:W("TargetArch(%s) not changed : unsupport arch %s",gsmake.Config.TargetArch,val)
                 return
