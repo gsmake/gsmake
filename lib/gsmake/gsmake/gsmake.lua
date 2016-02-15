@@ -60,13 +60,17 @@ function module.ctor(config,remotes)
         fs.mkdir(gsmake.Config.GlobalRepo,true) -- create repo directories
     end
 
-    gsmake.Repo = class.new("gsmake.repo",gsmake,gsmake.Config.GlobalRepo)
+    local path = filepath.join(gsmake.Config.GlobalRepo,"repo.db")
 
     reload = false
 
-    if not fs.exists(gsmake.Repo.Path) or gsmake.Config.Reload then
+    if not fs.exists(path) or gsmake.Config.Reload then
         reload = true
     end
+
+    gsmake.Repo = class.new("gsmake.repo",gsmake,path)
+
+
 
     if reload then
         -- cache builtin plugins
@@ -87,6 +91,7 @@ function module.ctor(config,remotes)
     end
 
     loader:load()
+
     loader:setup()
 
     return gsmake

@@ -33,8 +33,9 @@ function module:load()
     local gsmake    = self.Owner.Loader.GSMake
 
     -- first sync the plugin's package
-    local sourcePath = sync:sync(self.Name,self.Version)
 
+    local sourcePath = sync:sync(self.Name,self.Version)
+    
     self.Loader  = class.new("gsmake.loader",gsmake,sourcePath,self.Name,self.Version)
 
     self.Package = self.Loader:load()

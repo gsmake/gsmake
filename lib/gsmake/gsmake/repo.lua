@@ -20,7 +20,7 @@ function module.ctor (gsmake,path)
 
     local obj = {
         GSMake          = gsmake                            ;
-        Path            = filepath.join(path,"repo.db")     ; -- the global package cached repo path
+        Path            = path     ; -- the global package cached repo path
     }
 
     module.exec(obj,function(db)
