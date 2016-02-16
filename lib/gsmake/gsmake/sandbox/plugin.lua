@@ -41,6 +41,20 @@ function module.ctor(env,plugin,path)
 
     setmetatable(env.task,task_metatable)
 
+    local hidenval = {"task","properties"}
+
+    setmetatable(env,{
+        __newindex = function(_,name,val)
+            for _,hiden in pairs(hidenval) do
+                if hiden  == name then
+                    throw("don't modify system variable '%s'",name)
+                end
+            end
+
+            rawset(env,name,val)
+        end
+    })
+
 end
 
 

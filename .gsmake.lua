@@ -8,11 +8,11 @@ plugin "github.com/gsmake/lua"
 
 
 
-lua = {
+properties.lua = {
     srcDirs = { "lib" };
 }
 
-clang = {
+properties.clang = {
     ["lemon"] = {
         type                = "static";
         config              = "config.cmake"; -- the cmake config file

@@ -48,7 +48,23 @@ function module.ctor(env,package)
 
     setmetatable(env.task,task_metatable)
 
-    local hidenval = {}
+    env.properties = {}
+
+    local properties_metatable = {
+        __index = function(_,name)
+            return package.Properties[name]
+        end;
+
+        __newindex = function(_,name,val)
+            assert(type(val) == "table","the input property must be a table")
+            package.Properties[name] = val
+        end;
+    }
+
+    setmetatable(env.properties,properties_metatable)
+
+
+    local hidenval = {"task","properties"}
 
     for name in pairs(env) do
         table.insert(hidenval,name)
@@ -56,14 +72,13 @@ function module.ctor(env,package)
 
     setmetatable(env,{
         __newindex = function(_,name,val)
-
             for _,hiden in pairs(hidenval) do
                 if hiden  == name then
                     throw("don't modify system variable '%s'",name)
                 end
             end
 
-            package.Properties[name] = val
+            rawset(env,name,val)
         end
     })
 
