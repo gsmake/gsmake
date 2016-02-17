@@ -135,12 +135,7 @@ end
 
 -- get absolute path
 function module.abs(path)
-
-    if  sys.host() == "Windows" then return fs.abs(path) end
-
-    if module.isabs(path) then return module.clean(path) end
-
-    return module.join(fs.current(),path)
+    return fs.abs(path)
 end
 
 function module.split(path)

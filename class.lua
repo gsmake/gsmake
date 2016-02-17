@@ -1,10 +1,18 @@
+local throw = require "lemoon.throw"
+
 local module = {}
 
 function module.new(name,...)
 
-    local metatable = require(name)
+    local ok,metatable = pcall(require,name)
 
-    assert(type(metatable) == "table",string.format("class(%s) script must return table val",name))
+    if not ok then
+        throw("load class error\n%s",metatable)
+    end
+
+    if type(metatable) ~= "table" then
+        throw("class(%s) script must return table val",name)
+    end
 
     local obj
 
@@ -17,7 +25,7 @@ function module.new(name,...)
 
     setmetatable(obj,{
          __index = metatable;
-         __gc =metatable.final;
+         __gc = metatable.final;
      })
 
     return obj

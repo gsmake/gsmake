@@ -1,8 +1,15 @@
+local throw  = require "lemoon.throw"
 local module = {}
 
 function module.ctor(path)
+    local file,err = io.open(path,"w+")
+
+    if not file then
+        throw(err)
+    end
+
     return {
-        file = io.open(path,"w+")
+        file = file;
     }
 end
 

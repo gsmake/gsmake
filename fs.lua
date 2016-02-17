@@ -17,6 +17,11 @@ module.create_hard_links = 256
 
 -- copy the directory to target path
 function module.copy_dir(from,to,flags)
+
+    if from == nil then
+        throw("copy dir expect from arg")
+    end
+
     if module.exists(to) then
 
         if flags & module.skip_existing ~= 0 then
