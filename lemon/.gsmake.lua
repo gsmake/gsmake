@@ -5,7 +5,7 @@ version "develop"
 plugin "github.com/gsmake/clang"
 
 
-clang = {
+properties.clang = {
     ["lemon"] = {
         path                = ".";
         type                = "static";

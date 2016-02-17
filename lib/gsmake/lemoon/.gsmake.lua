@@ -4,7 +4,7 @@ version "develop" -- package version
 
 plugin "github.com/gsmake/lua"
 
-lua = {
+properties.lua = {
     installPrefix   = "lemoon";
     srcDirs         = { "." };
 }
