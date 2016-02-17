@@ -1,5 +1,6 @@
 local sys   = require "lemoon.sys"
 local class = require "lemoon.class"
+local throw = require "lemoon.throw"
 
 
 local module = {}
@@ -41,7 +42,7 @@ function module.ctor(env,plugin,path)
 
     setmetatable(env.task,task_metatable)
 
-    local hidenval = {"task","properties"}
+    local hidenval = {"task"}
 
     setmetatable(env,{
         __newindex = function(_,name,val)
