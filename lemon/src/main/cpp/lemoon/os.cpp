@@ -3,7 +3,6 @@
 #include <mutex>
 #include <locale>
 #include <cassert>
-#include <sstream>
 
 #include <lua/lua.hpp>
 #include <lemon/os/os.hpp>
@@ -170,7 +169,7 @@ namespace lemoon { namespace os{
         }
         catch(const std::exception &e)
         {
-			
+
 
             return luaL_error(L, "call lemon::os::exec#start method error :%s",e.what());
         }
@@ -308,7 +307,7 @@ namespace lemoon { namespace os{
 		{
 			return luaL_error(L, "call lemon::os::exec method error :%s", e.what());
 		}
-		
+
     }
 
     int lookup(lua_State *L)
@@ -369,7 +368,7 @@ namespace lemoon { namespace os{
 		{ "exec",lua_exec },
 		{ "host",hostname },
 		{ "arch",arch },
-		{ "tmpdir",tmpdir },	
+		{ "tmpdir",tmpdir },
 		{ "setenv",setenv },
 		{ "getenv",getenv },
         {NULL, NULL}
