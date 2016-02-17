@@ -1,6 +1,7 @@
 #ifndef LEMON_IO_ERRORS_HPP
 #define LEMON_IO_ERRORS_HPP
 
+#include <string>
 #include <system_error>
 
 namespace lemon { namespace io {

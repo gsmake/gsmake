@@ -19,22 +19,30 @@ namespace lemon{
         {
         public:
             reactor_op                 *next;
+
+            virtual ~reactor_op()
+            {
+
+            }
+
         protected:
 
             using action_f = bool(*)(reactor_op*);
             using complete_f = void(*)(reactor_op*);
 
             reactor_op(action_f action,complete_f complete)
-                    :_action(action)
+                    :next(nullptr)
+                    ,_action(action)
                     ,_complete(complete)
-                    ,next(nullptr)
-            {
 
+            {
+                
             }
 
         public:
             bool action()
             {
+                
                 return _action(this);
             }
 

@@ -10,6 +10,10 @@
 #include <lemon/io/reactor_io_service_epoll.hpp>
 #endif
 
+#if defined(__APPLE__)
+#include <lemon/io/reactor_io_service_kqueue.hpp>
+#endif
+
 #if defined(WIN32)
 #include <lemon/io/iocp_io_service.hpp>
 #endif //WIN32

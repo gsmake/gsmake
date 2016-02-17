@@ -44,11 +44,11 @@ namespace lemon{
         {
         public:
             reactor_io_object(reactor_io_service & service,handler fd)
-                    :_service(service)
-                    ,_handler(fd)
+                    :_handler(fd)
+                    ,_service(service)
                     ,_read_header(nullptr)
-                    ,_write_header(nullptr)
                     ,_read_tail(nullptr)
+                    ,_write_header(nullptr)
                     ,_write_tail(nullptr)
             {
                 std::error_code ec;
@@ -83,11 +83,15 @@ namespace lemon{
 
                 if(op->action())
                 {
-                    if(event_op == io_event_op::read) pop_read_op();
+                    if(event_op == io_event_op::read) {
+                        pop_read_op();
+                    }
                     else pop_write_op();
+
+                    return op;
                 }
 
-                return op;
+                return nullptr;
             }
 
 
@@ -147,13 +151,14 @@ namespace lemon{
 
             static void pop(reactor_op ** header, reactor_op**tail) noexcept
             {
+
                 auto irp = *header;
 
                 if(irp ==nullptr) return;
 
                 *header = irp->next;
 
-                if(*header ==nullptr) *tail = nullptr;
+                if(*header == nullptr) *tail = nullptr;
 
             }
 

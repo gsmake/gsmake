@@ -1,13 +1,13 @@
 
+
+#include <mutex>
 #include <locale>
+#include <cassert>
 
 #include <lua/lua.hpp>
-
 #include <lemon/os/os.hpp>
 
-#include "lemoon.h"
 
-#include <cassert>
 
 
 auto & logger = lemon::log::get("lemoon");
@@ -97,10 +97,8 @@ namespace lemoon { namespace os{
 		case arch_t::X86:
 			lua_pushstring(L, "X86");
 			break;
-		default:
-			lua_pushstring(L, "Unknown");
-			break;
 		}
+
 
 		return 1;
 	}
@@ -121,7 +119,7 @@ namespace lemoon { namespace os{
 
 		void callback(lua_State *L,const std::string & message)
 		{
-			if(_out != LUA_NOREF)
+			if (_out != LUA_NOREF)
 			{
 				lua_rawgeti(L, LUA_REGISTRYINDEX, _out);
 
@@ -131,10 +129,11 @@ namespace lemoon { namespace os{
 
 				if (0 != lua_pcall(L, 1, 0, 0))
 				{
-					lemonE(logger, "call exec output callback function error :%s",lua_tostring(L,-1));
+					lemonE(logger, "call exec output callback function error :%s", lua_tostring(L, -1));
 				}
 			}
 		}
+
 
 		void close(lua_State *L)
 		{
@@ -145,7 +144,7 @@ namespace lemoon { namespace os{
 		}
 
 	private:
-		int					_out;
+		int						_out;
 	};
 
     int lua_exec_start(lua_State *L)
@@ -182,7 +181,9 @@ namespace lemoon { namespace os{
     {
         auto cmd = (command*) luaL_checkudata(L,1,EXEC_CLASS_NAME);
 
-        lua_pushinteger(L,cmd->wait());
+		auto exit_code = cmd->wait();
+
+        lua_pushinteger(L,exit_code);
 
         return 1;
     }
@@ -223,7 +224,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(L, std::string(recv_buff, recv_buff + trans));
+				c->callback(L,std::string(recv_buff, recv_buff + trans));
 				lua_exec_out_callback(L,c);
 
 				return;
@@ -240,7 +241,7 @@ namespace lemoon { namespace os{
 
 			if (!err)
 			{
-				c->callback(L, std::string(recv_buff, recv_buff + trans));
+				c->callback(L,std::string(recv_buff, recv_buff + trans));
 				lua_exec_err_callback(L, c);
 
 				return;

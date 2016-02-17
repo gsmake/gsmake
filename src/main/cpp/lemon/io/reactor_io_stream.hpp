@@ -13,6 +13,7 @@
 #include <lemon/io/buff.hpp>
 #include <lemon/io/reactor_op.hpp>
 #include <lemon/io/reactor_io_object.hpp>
+#include <lemon/io/reactor_io_service.hpp>
 
 namespace lemon{
     namespace io{
@@ -30,7 +31,7 @@ namespace lemon{
                     ,_callback((callback))
                     ,_trans(0)
             {
-
+               
             }
 
         private:
@@ -117,6 +118,8 @@ namespace lemon{
                     if(errno == EAGAIN || errno == EWOULDBLOCK)
                     {
                         auto op = new reactor_read_op<Callback>(get(),buff,std::forward<Callback>(callback));
+
+                        std::lock_guard<reactor_io_service> lock(service());
 
                         push_read_op(op);
                     }

@@ -80,7 +80,7 @@ namespace lemon{
                     return;
                 }
 
-                auto complete = std::unique_ptr<reactor_op>(_complete_header);
+                auto complete = _complete_header;
 
                 if(complete)
                 {
@@ -88,11 +88,15 @@ namespace lemon{
                     // pop the header complete handler
                     _complete_header = _complete_header->next;
 
-                    if(_complete_tail == complete.get()) _complete_tail = nullptr;
+                    if(_complete_tail == complete) {
+                        _complete_tail = nullptr;
+                    }
 
                     lock.unlock();
 
                     complete->complete();
+
+                    delete complete;
                 }
             }
 
@@ -105,7 +109,7 @@ namespace lemon{
             {
                 std::unique_lock<std::mutex> lock(_mutex);
 
-                if(_complete_header ==nullptr)
+                if(_complete_header == nullptr)
                 {
                     _complete_tail = _complete_header = op;
                 }
@@ -114,6 +118,16 @@ namespace lemon{
                     _complete_tail->next = op;
                     _complete_tail = op;
                 }
+            }
+
+            void lock()
+            {
+                _mutex.lock();
+            }
+
+            void unlock()
+            {
+                _mutex.unlock();
             }
 
         protected:
@@ -152,7 +166,7 @@ namespace lemon{
 
                 if(op)
                 {
-                    if(_complete_header ==nullptr)
+                    if(_complete_header == nullptr)
                     {
                         _complete_tail = _complete_header = op;
                     }

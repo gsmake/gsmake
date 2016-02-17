@@ -27,7 +27,7 @@ namespace lemon { namespace fs {
 
 			if (_dir == nullptr)
 			{
-				throw std::error_code(errno, std::system_category());
+				throw std::system_error(errno, std::system_category());
 			}
 		}
 
