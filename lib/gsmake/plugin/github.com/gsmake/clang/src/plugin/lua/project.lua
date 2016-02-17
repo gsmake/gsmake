@@ -65,20 +65,19 @@ function module:link(projects)
             logger:D("found project [%s] dependency %s",self.Name,dep.name)
             -- link external package
             if dep.version == nil then
-                dep.version = self.Lake.Config.GSMAKE_DEFAULT_VERSION
+                dep.version = self.Loader.Config.DefaultVersion
             end
 
+
+
             -- sync the source package
-            local sourcePath = self.Lake.Sync:sync(dep.name,dep.version)
+            local sourcePath = self.Loader.Sync:sync(dep.name,dep.version)
 
             -- load the package
-            local package = self.Lake.Loader:load(sourcePath,dep.name,dep.version)
-            -- link the source package
-            package:link()
-            -- setup package
-            package:setup()
-
-            class.new("lake",package.Path):run("install",self.OutputDir)
+            local loader = class.new("gsmake.loader",self.Loader.GSMake,sourcePath,dep.name,dep.version)
+            loader:load()
+            loader:setup()
+            loader:run("install",self.OutputDir)
 
             local proj = {
                 Name                        = dep.module;

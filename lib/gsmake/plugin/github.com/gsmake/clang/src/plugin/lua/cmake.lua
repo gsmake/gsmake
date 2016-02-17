@@ -196,11 +196,13 @@ function module:gen_cmake_files ()
 end
 
 function module:cmakegen ()
+
     local clang = self.task.Owner.Properties.clang
 
     if clang == nil then
         logger:W("clang projects not found !!!!")
-        return
+        console:W("clang projects not found !!!!")
+        return true
     end
 
     for k,v in pairs(clang) do
@@ -221,6 +223,7 @@ function module:cmakegen ()
     self:gen_cmake_files()
 
     local cmake_root_dir = self.cmake_root_dir
+
     local cmake_build_dir = filepath.join(cmake_root_dir,".build")
     if not fs.exists(cmake_build_dir) then
         fs.mkdir(cmake_build_dir,true)

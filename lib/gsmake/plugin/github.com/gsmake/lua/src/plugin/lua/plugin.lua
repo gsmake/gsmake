@@ -37,15 +37,14 @@ task.resources = function(self)
             end
 
             local sourcePath = loader.Sync:sync(dep.name,dep.version)
-
             -- load the package
-            local package = self.Lake.Loader:load(sourcePath,dep.name,dep.version)
+            local packageloader = class.new("gsmake.loader",self.Owner.Loader.GSMake,sourcePath,dep.name,dep.version)
             -- link the source package
-            package:link()
+            packageloader:load()
             -- setup package
-            package:setup()
+            packageloader:setup()
 
-            if class.new("gsmake.loader",gsmake,package.Path):run("install",dependencies_dir) then
+            if packageloader:run("install",dependencies_dir) then
                 return true
             end
         end

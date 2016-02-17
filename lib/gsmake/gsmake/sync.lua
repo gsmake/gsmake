@@ -24,6 +24,7 @@ function module.ctor (loader)
 end
 
 function module:geturl(name,version,remotes)
+
     local url = nil
 
     for _,remote in pairs(remotes) do
@@ -109,6 +110,10 @@ end
 
 -- sync package's
 function module:sync (name,version)
+
+    if name == nil or version == nil then
+        throw("sync:sync invalid args :%s,%s",name,version)
+    end
 
     local repoDB    = self.loader.GSMake.Repo
 
