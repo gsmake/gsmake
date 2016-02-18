@@ -46,7 +46,7 @@ namespace lemon{
 
 			int buffsize() const
 			{
-				return max_addr_buffer_length;
+				return max_addr_buffer_length * 2;
 			}
 
 		private:
@@ -63,9 +63,9 @@ namespace lemon{
 							sizeof(SOCKET)
 							))
 					{
-						op->_ec = std::error_code(WSAGetLastError(), std::system_category());
+						//op->_ec = std::error_code(WSAGetLastError(), std::system_category());
 					}
-					else
+					//else
 					{
 						struct sockaddr * localAddress, *remoteAddress;
 
@@ -82,6 +82,8 @@ namespace lemon{
 							&remoteAddressSize);
 
 						op->_callback(op->_peer, address(remoteAddress,remoteAddressSize), op->_ec);
+
+						return;
 					}
 				}
 
@@ -192,7 +194,8 @@ namespace lemon{
 
 				std::unique_ptr<iocp_accept_op<Callback>> op(new iocp_accept_op<Callback>(get(), peer,_getsockaddrsex, std::forward<Callback>(callback)));
 
-				if(!_acceptex((SOCKET)get(), (SOCKET)peer->get(), op->buff(), op->buffsize(), op->buffsize() / 2, op->buffsize() / 2, 0, op.get()))
+
+				if(!_acceptex((SOCKET)get(), (SOCKET)peer->get(), op->buff(),0 , max_addr_buffer_length, max_addr_buffer_length, 0, op.get()))
 				{
 					if (ERROR_IO_PENDING != GetLastError()) {
 						
