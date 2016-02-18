@@ -73,17 +73,6 @@ namespace lemon{
 				run_one(std::chrono::seconds(-1), ec);
 			}
 
-			void run_one()
-			{
-				std::error_code ec;
-				run_one(ec);
-
-				if(ec)
-				{
-					throw std::system_error(ec);
-				}
-			}
-
 			void notify_all()
 			{
 				std::error_code ec;
