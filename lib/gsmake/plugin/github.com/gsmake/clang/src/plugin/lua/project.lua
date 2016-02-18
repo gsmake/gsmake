@@ -79,12 +79,27 @@ function module:link(projects)
             loader:setup()
             loader:run("install",self.OutputDir)
 
-            local proj = {
-                Name                        = dep.module;
-                External                    = true;
-            }
+            if dep.module == nil then
+                dep.module = {}
+                for k,v in pairs(loader.Package.Properties.clang or {}) do
+                    if v["type"] ~= "exe" then
+                        table.insert(dep.module,k)
+                    end
+                end
+            elseif type(dep.module) == "string" then
+                dep.module = { dep.module }
+            end
 
-            table.insert(self.Linked,proj)
+            for _,name in ipairs(dep.module) do
+
+                local proj = {
+                    Name           = name;
+                    External       = true;
+                }
+
+                table.insert(self.Linked,proj)
+            end
+
         else
             local proj = projects[dep]
 
