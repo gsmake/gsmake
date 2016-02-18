@@ -15,6 +15,7 @@
 #include <lemon/io/sockaddr.hpp>
 #include <lemon/io/iocp_io_object.hpp>
 #include <lemon/io/iocp_io_service.hpp>
+#include <lemon/io/iocp_io_stream.hpp>
 
 #include <Mswsock.h>
 #pragma comment(lib,"Mswsock.lib")
@@ -55,36 +56,23 @@ namespace lemon{
 			{
 				if(!op->_ec)
 				{
-					if (SOCKET_ERROR == setsockopt(
-							(SOCKET)op->_peer->get(),
-							SOL_SOCKET,
-							SO_UPDATE_ACCEPT_CONTEXT,
-							(const char*)op->fd,
-							sizeof(SOCKET)
-							))
-					{
-						//op->_ec = std::error_code(WSAGetLastError(), std::system_category());
-					}
-					//else
-					{
-						struct sockaddr * localAddress, *remoteAddress;
+					struct sockaddr * localAddress, *remoteAddress;
 
-						int	localAddressSize, remoteAddressSize;
+					int	localAddressSize, remoteAddressSize;
 
-						op->_getsockaddrsex(
-							op->_addrbuff,
-							0,
-							max_addr_buffer_length,
-							max_addr_buffer_length,
-							&localAddress,
-							&localAddressSize,
-							&remoteAddress,
-							&remoteAddressSize);
+					op->_getsockaddrsex(
+						op->_addrbuff,
+						0,
+						max_addr_buffer_length,
+						max_addr_buffer_length,
+						&localAddress,
+						&localAddressSize,
+						&remoteAddress,
+						&remoteAddressSize);
 
-						op->_callback(op->_peer, address(remoteAddress,remoteAddressSize), op->_ec);
+					op->_callback(op->_peer, address(remoteAddress, remoteAddressSize), op->_ec);
 
-						return;
-					}
+					return;
 				}
 
 				op->_peer.reset();
@@ -105,7 +93,7 @@ namespace lemon{
 		{
 		public:
 			iocp_connect_op(handler fd, Callback && callback)
-				:iocp_op(iocp_op_t::read, fd, (iocp_op::complete_f)iocp_connect_op::read_complete)
+				:iocp_op(iocp_op_t::write, fd, (iocp_op::complete_f)iocp_connect_op::read_complete)
 				, _callback(callback)
 			{
 
@@ -194,6 +182,7 @@ namespace lemon{
 
 				std::unique_ptr<iocp_accept_op<Callback>> op(new iocp_accept_op<Callback>(get(), peer,_getsockaddrsex, std::forward<Callback>(callback)));
 
+				add_op(op.get());
 
 				if(!_acceptex((SOCKET)get(), (SOCKET)peer->get(), op->buff(),0 , max_addr_buffer_length, max_addr_buffer_length, 0, op.get()))
 				{
@@ -230,10 +219,62 @@ namespace lemon{
 
 				std::unique_ptr<iocp_connect_op<Callback>> op(new iocp_connect_op<Callback>(get(), std::forward<Callback>(callback)));
 
+				add_op(op.get());
+
 				DWORD sendBytes = 0;
+
+
 				if (!_connectex((SOCKET)get(), addr, addr.length(), NULL, sendBytes, &sendBytes, op.get()))
 				{
 					if (ERROR_IO_PENDING != WSAGetLastError()) {
+						op->cancel(std::error_code(GetLastError(), std::system_category()));
+						service().complete(op.get());
+					}
+				}
+
+				op.release();
+			}
+
+			template <typename Callback>
+			void recv(buffer buff, int flags, Callback && callback)
+			{
+				auto op = std::unique_ptr<iocp_op>(new iocp_read_op<Callback>(get(), std::forward<Callback>(callback)));
+
+				add_op(op.get());
+
+				WSABUF wsaBuff;
+				wsaBuff.buf = (CHAR*)buff.data;
+				wsaBuff.len = (ULONG)buff.length;
+				
+				DWORD dflag = flags;
+
+				if (0 != WSARecv((SOCKET)get(), &wsaBuff, 1, NULL,&dflag, op.get(),NULL))
+				{
+					if (ERROR_IO_PENDING != GetLastError()) {
+						op->cancel(std::error_code(GetLastError(), std::system_category()));
+						service().complete(op.get());
+					}
+				}
+
+				op.release();
+			}
+
+			template <typename Callback>
+			void send(const_buffer buff, int flags, Callback && callback)
+			{
+				auto op = std::unique_ptr<iocp_op>(new iocp_write_op<Callback>(get(), std::forward<Callback>(callback)));
+
+				add_op(op.get());
+
+				WSABUF wsaBuff;
+				wsaBuff.buf = (CHAR*)buff.data;
+				wsaBuff.len = (ULONG)buff.length;
+
+				DWORD dflag = flags;
+
+				if (0 != WSASend((SOCKET)get(), &wsaBuff, 1, NULL, dflag, op.get(), NULL))
+				{
+					if (ERROR_IO_PENDING != GetLastError()) {
 						op->cancel(std::error_code(GetLastError(), std::system_category()));
 						service().complete(op.get());
 					}
@@ -364,16 +405,28 @@ namespace lemon{
 
 			}
 
-			socket_stream(iocp_io_socket * socket) :_socket(socket)
+			socket_stream(std::unique_ptr<iocp_io_socket> & socket) :_socket(std::move(socket))
 			{
 
+			}
+
+			template <typename Callback>
+			void recv(buffer buff, int flags, Callback && callback)
+			{
+				_socket->recv(buff, flags, std::forward<Callback>(callback));
+			}
+
+			template <typename Callback>
+			void send(const_buffer buff, int flags, Callback && callback)
+			{
+				_socket->send(buff, flags, std::forward<Callback>(callback));
 			}
 
 		protected:
 			std::unique_ptr<iocp_io_socket>					_socket;
 		};
 
-		class socket_client : socket_stream
+		class socket_client : public socket_stream
 		{
 		public:
 			using socket_stream::socket_stream;
