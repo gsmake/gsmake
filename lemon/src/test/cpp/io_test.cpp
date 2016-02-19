@@ -43,19 +43,19 @@ test_(socket)
 
 	auto addrinfo = lemon::io::getaddrinfo("", "1812", AF_INET, SOCK_STREAM, AI_PASSIVE)[0];
 
-	socket_server server(ioservice, addrinfo.af(), addrinfo.type(), addrinfo.protocol());
+	io_socket_server server(ioservice, addrinfo.af(), addrinfo.type(), addrinfo.protocol());
 
 	server.bind(addrinfo.addr());
 
 	server.listen(SOMAXCONN);
 
-	socket_stream * stream;
+	io_socket_stream * stream;
 
 	char recvbuff[1024];
 
 	bool exit = false;
 
-	server.accept([&](std::unique_ptr<iocp_io_socket> & socket, address && addr, const std::error_code & ec) {
+	server.accept([&](std::unique_ptr<io_socket> & socket, address && addr, const std::error_code & ec) {
 		if (ec)
 		{
 			lemonE(lemon::log::get("test"), "accept client error :%s", ec.message().c_str());
@@ -64,7 +64,7 @@ test_(socket)
 		{
 			lemonI(lemon::log::get("test"), "accept client(%s:%d) success ",addr.host().c_str(),addr.service());
 
-			stream = new socket_stream(socket);
+			stream = new io_socket_stream(socket);
 
 			stream->recv(buff(recvbuff), 0, [&](size_t trans, const std::error_code &ec) {
 				if (ec)
@@ -83,7 +83,7 @@ test_(socket)
 	});
 	
 	
-	socket_client client(ioservice, AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	io_socket_client client(ioservice, AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
 	client.connect(addrinfo.addr(),[&](const std::error_code& ec){
 		if(ec)

@@ -90,7 +90,7 @@ namespace lemon{
 				std::error_code ec;
 				run_one(timeout,ec);
 
-				if (ec)
+				if (ec&&ec != std::errc::timed_out)
 				{
 					throw std::system_error(ec);
 				}

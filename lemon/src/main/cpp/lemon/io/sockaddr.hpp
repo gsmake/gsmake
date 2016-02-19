@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <cerrno>
+#include <string>
 #include <system_error>
 #include <lemon/config.h>
 #include <lemon/nocopy.hpp>
@@ -35,7 +36,7 @@ namespace lemon{
 			{
 				if (_len)
 				{
-					delete[] _buff;
+					delete[] (char*)_buff;
 				}
 			}
 
@@ -63,11 +64,18 @@ namespace lemon{
 
 			address(address && rhs)
 			{
+				*this = std::forward<address>(rhs);
+			}
+
+			address & operator = (address && rhs)
+			{
 				_buff = std::move(rhs._buff);
 
 				_len = rhs._len;
-				
+
 				rhs._len = 0;
+
+				return *this;
 			}
 
 			operator sockaddr*()
