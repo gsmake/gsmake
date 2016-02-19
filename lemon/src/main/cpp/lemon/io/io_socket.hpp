@@ -4,25 +4,26 @@
 #ifdef WIN32
 #include <lemon/io/iocp_io_socket.hpp>
 #else
-
-#include <lemon/io/reactor_io_socket.hpp>
+#include <lemon/io/io_socket.hpp>
 #endif //WIN32
+
+#include <lemon/io/io_service.hpp>
 
 namespace lemon {
     namespace io {
-/**
-         * the server socket facade
+		/**
+         * stream socket acceptor
          */
-        class io_socket_server : nocopy
+        class io_socket_acceptor : nocopy
         {
         public:
-            io_socket_server(reactor_io_service & service, int af, int type, int protocol)
-                    :_socket(new reactor_io_socket(service,af, type, protocol))
+            io_socket_acceptor(io_service & service, int af, int type, int protocol)
+                    :_socket(new io_socket(service,af, type, protocol))
             {
 
             }
 
-            io_socket_server(reactor_io_socket * socket): _socket(socket)
+            io_socket_acceptor(io_socket * socket): _socket(socket)
             {
 
             }
@@ -81,7 +82,7 @@ namespace lemon {
                 }
             }
         private:
-            std::unique_ptr<reactor_io_socket>					_socket;
+            std::unique_ptr<io_socket>					_socket;
         };
 
 
@@ -89,16 +90,16 @@ namespace lemon {
         /**
          * the stream socket facade
          */
-        class io_socket_stream : nocopy
+        class io_stream_socket : nocopy
         {
         public:
-            io_socket_stream(reactor_io_service & service, int af, int type, int protocol)
-                    :_socket(new reactor_io_socket(service, af, type, protocol))
+            io_stream_socket(io_service & service, int af, int type, int protocol)
+                    :_socket(new io_socket(service, af, type, protocol))
             {
 
             }
 
-            io_socket_stream(std::unique_ptr<reactor_io_socket> & socket) : _socket(std::move(socket))
+            io_stream_socket(std::unique_ptr<io_socket> & socket) : _socket(std::move(socket))
             {
 
             }
@@ -115,38 +116,27 @@ namespace lemon {
                 _socket->send(buff, flags, std::forward<Callback>(callback));
             }
 
+
+			template <typename Callback>
+			void connect(const address & addr, Callback && callback, std::error_code & ec) noexcept
+			{
+				_socket->connect(addr, callback, ec);
+			}
+
+			template <typename Callback>
+			void connect(const address & addr, Callback && callback)
+			{
+				std::error_code ec;
+				_socket->connect(addr, callback, ec);
+
+				if (ec)
+				{
+					throw std::system_error(ec);
+				}
+			}
+
         protected:
-            std::unique_ptr<reactor_io_socket>					_socket;
-        };
-
-
-        /**
-         * the stream socket client
-         */
-        class io_socket_client : public io_socket_stream
-        {
-        public:
-
-            using io_socket_stream::io_socket_stream;
-
-        public:
-            template <typename Callback>
-            void connect(const address & addr, Callback && callback, std::error_code & ec) noexcept
-            {
-                _socket->connect(addr, callback, ec);
-            }
-
-            template <typename Callback>
-            void connect(const address & addr, Callback && callback)
-            {
-                std::error_code ec;
-                _socket->connect(addr, callback, ec);
-
-                if (ec)
-                {
-                    throw std::system_error(ec);
-                }
-            }
+            std::unique_ptr<io_socket>					_socket;
         };
     }
 }

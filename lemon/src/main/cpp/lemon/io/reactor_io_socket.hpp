@@ -371,7 +371,7 @@ namespace lemon{
 
 
         template <typename Callback>
-        bool reactor_accept_op<Callback>:: accept_action (reactor_accept_op* op)
+        inline bool reactor_accept_op<Callback>:: accept_action (reactor_accept_op* op)
         {
             socklen_t len = max_addr_buffer_length;
 
@@ -400,7 +400,7 @@ namespace lemon{
         }
 
         template <typename Callback>
-        void reactor_accept_op<Callback>::read_complete(io::reactor_accept_op<Callback> *op)
+        inline void reactor_accept_op<Callback>::read_complete(io::reactor_accept_op<Callback> *op)
         {
             auto socket = std::unique_ptr<reactor_io_socket>(new reactor_io_socket(op->_service,op->_conn));
 
