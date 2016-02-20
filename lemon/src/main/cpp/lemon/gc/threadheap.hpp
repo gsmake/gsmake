@@ -70,13 +70,12 @@ namespace lemon {
 
 				try
 				{
-					gcobj->counter = 1;
 					return new(gcobj->buff)T(std::forward<Args>(args)...);
 				}
 				catch (...)
 				{
-					gcobj->marked = 2;
-					heap->dodestroy(gcobj, objid);
+					gcobj->marked = gc_object::black;
+					heap->unlock(gcobj, objid);
 					throw;
 				}
 				
@@ -93,12 +92,10 @@ namespace lemon {
 
 				if (iter != _classheaps.end())
 				{
-					auto gcobj = iter->second->get((uint32_t)(id&0xffffffff));
+					auto gcobj = iter->second->lock((uint32_t)(id&0xffffffff));
 
 					if (gcobj)
 					{
-						gcobj->counter++;
-
 						return (T*)gcobj->buff;
 					}
 				}
@@ -112,27 +109,36 @@ namespace lemon {
 				typedef typename std::remove_cv<Class>::type T;
 
 				auto gcobj = gc_object_cast<Class>(obj);
-				gcobj->counter -- ;
+				
 
-				if (gcobj->counter == 0)
+				auto iter = _classheaps.find(&typeid((T*)0));
+
+				if (iter != _classheaps.end())
 				{
-					auto typeinfo = &typeid((T*)0);
-
-					auto iter = _classheaps.find(typeinfo);
-
-					if (iter != _classheaps.end())
-					{
-						gcobj->marked = 1;
-
-						iter->second->dodestroy(gcobj, (uint32_t)(id & 0xffffffff));
-					}
+					iter->second->unlock(gcobj, (uint32_t)(id & 0xffffffff));
 				}
 			}
 
 			template<typename Class>
 			void destroy(Class* obj, referid)
 			{
-				gc_object_cast<Class>(obj)->marked = 1; // free buff with finalize
+
+				auto iter = _classheaps.find(typeinfo);
+
+				if (iter != _classheaps.end())
+				{
+					gc_object_cast<Class>(obj)->marked = gc_object::gray;
+					iter->second->unlock(gcobj, (uint32_t)(id & 0xffffffff));
+				}
+			}
+
+
+			void collect()
+			{
+				for (auto kv : _classheaps)
+				{
+					kv.second->collect();
+				}
 			}
 
 		private:

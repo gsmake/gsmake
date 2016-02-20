@@ -49,6 +49,14 @@ namespace lemon {
 
 			}
 
+			template<class T,
+			class = typename std::enable_if<std::is_convertible<T *, Class *>::value, void>::type
+			>
+			let(ref<T> rhs)
+			{
+				*this = rhs.lock();
+			}
+
 			let(Class* obj, referid id)
 				:ptr(obj),id(id)
 			{
@@ -150,9 +158,18 @@ namespace lemon {
 				return ref<T>(id);
 			}
 
+			template<typename T,
+			class = typename std::enable_if<std::is_convertible<T *, Class *>::value, void>::type
+			>
+			let& operator = (ref<T> rhs)
+			{
+				*this = rhs.lock();
+
+				return *this;
+			}
 		
 			Class				*ptr;
-			referid			id;
+			referid				id;
 		};
 
 		template<typename Class>
@@ -170,6 +187,22 @@ namespace lemon {
 
 			return let<Class>(obj,id);
 		}
+
+		inline void collect()
+		{
+			get_threadheap().collect();
+		}
+
+		class collect_guard final
+		{
+		public:
+			collect_guard() = default;
+
+			~collect_guard()
+			{
+				collect();
+			}
+		};
 	}
 }
 

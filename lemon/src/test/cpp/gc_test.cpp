@@ -1,5 +1,7 @@
 #include <lemon/test/test.hpp>
 #include <lemon/gc/gc.hpp>
+#include <string>
+#include <unordered_map>
 #include <thread>
 #include <iostream>
 
@@ -27,6 +29,8 @@ public:
 
 test_(gcobject) {
 
+	collect_guard collectguard;
+		
 	let<const Test> a = gc_new<Test>(1);
 
 	test_assert(a);
@@ -43,5 +47,15 @@ test_(gcobject) {
 
 	a.unlock();
 
+	collect();
+
 	test_assert(!aref.lock());
+
+	std::unordered_map<std::string, let<const Test>> tests;
+
+	tests["a"] = aref;
+
+	test_assert(!tests["a"]);
+
+	tests["a"] = gc_new<Test>(3);
 }

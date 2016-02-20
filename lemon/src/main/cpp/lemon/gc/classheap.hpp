@@ -17,11 +17,17 @@
 namespace lemon {
 	namespace gc {
 
+
+
 		struct gc_object
 		{
-			uint8_t			marked; // marked for destroy
+			const static uint8_t white = 0;
+			const static uint8_t gray  = 1;
+			const static uint8_t black = 2;
 
 			int				counter;
+
+			uint8_t			marked; // marked for destroy
 
 			char			buff[1];
 		};
@@ -52,9 +58,19 @@ namespace lemon {
 
 			~classheap()
 			{
-				for (auto iter : _objects)
+				for (auto iter : _shared)
 				{
-					if (iter.second->marked == 1)
+					if (iter.second->marked == gc_object::gray)
+					{
+						_destroy(iter.second->buff, _size);
+					}
+
+					free(iter.second);
+				}
+
+				for (auto iter : _weak)
+				{
+					if (iter.second->marked == gc_object::gray)
 					{
 						_destroy(iter.second->buff, _size);
 					}
@@ -67,7 +83,7 @@ namespace lemon {
 			{
 				for (;;)
 				{
-					if (_objects[_idgen] == nullptr)
+					if (_shared[_idgen] == nullptr && _weak[_idgen] == nullptr)
 					{
 						id = _idgen ++;
 
@@ -79,9 +95,9 @@ namespace lemon {
 
 						memset(obj,0, nsize);
 
-						obj->marked		= 0;
-						obj->counter	= 0;
-						_objects[id] = obj;
+						obj->marked		= gc_object::white;
+						obj->counter	= 1;
+						_shared[id] = obj;
 
 						return obj;
 					}
@@ -90,36 +106,80 @@ namespace lemon {
 				
 			}
 
-			gc_object * get(uint32_t id)
+			gc_object * lock(uint32_t id)
 			{
-				auto iter = _objects.find(id);
+				auto iter = _shared.find(id);
 
-				if (iter != _objects.end())
+				if (iter == _shared.end())
 				{
-					if (iter->second->marked == 0)
+					iter = _weak.find(id);
+
+					if (iter == _weak.end())
 					{
-						return iter->second;
+						return nullptr;
+					}
+
+					if (iter->second->marked != gc_object::white)
+					{
+						return nullptr;
+					}
+
+					_shared.insert(*iter);
+
+					auto gcobj = iter->second;
+
+					gcobj->counter++;
+
+					_weak.erase(iter);
+
+					return gcobj;
+				}
+				else
+				{
+					if (iter->second->marked == gc_object::white)
+					{
+						auto gcobj = iter->second;
+
+						gcobj->counter++;
+
+						return gcobj;
 					}
 				}
+				
 
 				return nullptr;
 			}
 
-			void dodestroy(gc_object *obj,uint32_t id)
+			void unlock(gc_object *obj,uint32_t id)
 			{
-				if (obj->marked == 1)
+				if (--obj->counter == 0)
 				{
-					_destroy(obj->buff, _size);
+					_shared.erase(id);
+					_weak[id] = obj;
+				}
+			}
+
+			void collect()
+			{
+				for (auto kv : _weak)
+				{
+					if (kv.second->marked != gc_object::black)
+					{
+						_destroy(kv.second->buff, _size);
+					}
+
+					free(kv.second);
 				}
 
-				_objects.erase(id);
+				_weak.clear();
 			}
 
 		private:
 			std::size_t									_size;
 			destroy										_destroy;
 			uint32_t									_idgen;
-			std::unordered_map<uint32_t, gc_object*>	_objects;
+			std::unordered_map<uint32_t, gc_object*>	_shared;
+			std::unordered_map<uint32_t, gc_object*>	_weak;
 		};
 	}
 }
