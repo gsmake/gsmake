@@ -268,14 +268,12 @@ function module:compile ()
     end)
     exec:dir(cmake_build_dir)
 
-    local buildconfig = self.task.Loader.Config.BuildConfig
+    local buildconfig = self.task.Owner.Loader.Config.BuildConfig
 
     if buildconfig then
         exec:start("--build",".","--config",buildconfig)
     else
         exec:start("--build",".")
-    else
-
     end
 
     if 0 ~= exec:wait() then
