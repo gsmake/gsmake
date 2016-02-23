@@ -99,8 +99,15 @@ namespace lemon{ namespace uuids{
         uint8_t data[16];
     };
 
-    bool operator== (uuid const& lhs, uuid const& rhs) noexcept;
-    bool operator< (uuid const& lhs, uuid const& rhs) noexcept;
+    inline bool operator== (uuid const& lhs, uuid const& rhs) noexcept
+	{
+		return memcmp(lhs.data, rhs.data, 16) == 0;
+	}
+
+    inline bool operator< (uuid const& lhs, uuid const& rhs) noexcept
+	{
+		return memcmp(lhs.data, rhs.data, 16) < 0;
+	}
 
     inline bool operator!=(uuid const& lhs, uuid const& rhs) noexcept
     {
@@ -232,6 +239,16 @@ namespace std {
 
     template <>
     struct is_pod<lemon::uuids::uuid> : true_type {};
+
+
+	template<>
+	struct hash<lemon::uuids::uuid>
+	{
+		size_t operator()(const lemon::uuids::uuid& _Keyval) const
+		{	
+			return lemon::uuids::hash_value(_Keyval);
+		}
+	};
 
 }
 

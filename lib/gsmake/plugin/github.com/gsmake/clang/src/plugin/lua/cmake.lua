@@ -268,7 +268,15 @@ function module:compile ()
     end)
     exec:dir(cmake_build_dir)
 
-    exec:start("--build",".")
+    local buildconfig = self.task.Loader.Config.BuildConfig
+
+    if buildconfig then
+        exec:start("--build",".","--config",buildconfig)
+    else
+        exec:start("--build",".")
+    else
+
+    end
 
     if 0 ~= exec:wait() then
         console:E("clang build -- failed")

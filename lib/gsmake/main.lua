@@ -44,6 +44,14 @@ local options = {
         call = function (config)
             config.Reload = true
         end;
+    };
+
+    ["^-config"] = {
+        value = true;
+
+        call = function (config,val)
+            config.BuildConfig = val
+        end;
     }
 }
 
