@@ -56,6 +56,18 @@ namespace lemon{
             }
 
             template <typename _Rep, typename _Period>
+            void run_one(std::chrono::duration<_Rep, _Period> timeout)
+            {
+                std::error_code ec;
+                run_one(timeout,ec);
+
+                if (ec&&ec != std::errc::timed_out)
+                {
+                    throw std::system_error(ec);
+                }
+            }
+
+            template <typename _Rep, typename _Period>
             void run_one(std::chrono::duration<_Rep,_Period> timeout, std::error_code & ec)
             {
                 std::unique_lock<std::mutex> lock(_mutex);
