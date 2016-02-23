@@ -269,12 +269,20 @@ function module:compile ()
     exec:dir(cmake_build_dir)
 
     local buildconfig = self.task.Owner.Loader.Config.BuildConfig
+    local buildclear = self.task.Owner.Loader.Config.BuildClear
+
+    local buildargs = {"--build","."}
 
     if buildconfig then
-        exec:start("--build",".","--config",buildconfig)
-    else
-        exec:start("--build",".")
+        table.insert(buildargs,"--config")
+        table.insert(buildargs,buildconfig)
     end
+
+    if buildclear then
+        table.insert(buildargs,"--clean-first")
+    end
+
+    exec:start(table.unpack(buildargs))
 
     if 0 ~= exec:wait() then
         console:E("clang build -- failed")

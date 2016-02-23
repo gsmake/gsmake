@@ -52,6 +52,12 @@ local options = {
         call = function (config,val)
             config.BuildConfig = val
         end;
+    };
+
+    ["^-clear"] = {
+        call = function (config)
+            config.BuildClear = true
+        end;
     }
 }
 
