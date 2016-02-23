@@ -61,8 +61,9 @@ namespace lemon{ namespace log{
 			break;
 		}
 #endif 
-		
-		std::cout << msg.Content << std::endl;
+
+		printf("%s",msg.Content.c_str());
+		printf("\n");
 
 
 #ifdef WIN32

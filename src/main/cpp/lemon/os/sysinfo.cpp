@@ -8,6 +8,7 @@
 #include <TargetConditionals.h>
 #endif //
 
+#include <sstream>
 #include <lemon/fs/fs.hpp>
 #include <lemon/strings.hpp>
 #include <lemon/os/sysinfo.hpp>
@@ -88,6 +89,19 @@ namespace lemon { namespace os {
 
         return std::make_tuple(convert().to_bytes(&buff[0]), true);
     }
+
+	void setenv(const std::string &name, const std::string &val,std::error_code &ec)
+	{
+		auto namew = convert().from_bytes(name);
+
+		auto valnew = convert().from_bytes(val);
+
+		if (!::SetEnvironmentVariableW(namew.c_str(), valnew.c_str()))
+		{
+			ec = std::error_code(GetLastError(),std::system_category());
+		}
+	}
+
     #else
 
     std::tuple<std::string,bool> getenv(const std::string &name)
@@ -101,6 +115,14 @@ namespace lemon { namespace os {
 
         return std::make_tuple(std::string(), false);
     }
+
+	void setenv(const std::string &name, const std::string &val, std::error_code &ec)
+	{
+		if (-1 == ::setenv(name.c_str(), val.c_str(),1))
+		{
+			ec = std::error_code(errno, std::system_category());
+		}
+	}
 
     #endif //WIN32
 
@@ -167,10 +189,10 @@ namespace lemon { namespace os {
 
     #ifdef WIN32
         const std::string delimiter = ";";
-        const std::string extend = ".exe";
+		const std::vector<std::string> extends = { ".exe",".cmd",".bat",".com" };
     #else
         const std::string delimiter = ":";
-        const std::string extend = "";
+		const std::vector<std::string> extends = { "" };
     #endif //WIN32
 
         auto paths = strings::split(std::get<0>(path), delimiter);
@@ -188,12 +210,16 @@ namespace lemon { namespace os {
 
         for(auto p : paths)
         {
-            auto fullPath = fs::filepath(p) / (cmd + extend);
+			for (auto extend : extends)
+			{
+				auto fullPath = fs::filepath(p) / (cmd + extend);
 
-            if(fs::exists(fullPath))
-            {
-                return std::make_tuple(fullPath.string(), true);
-            }
+				if (fs::exists(fullPath))
+				{
+					return std::make_tuple(fullPath.string(), true);
+				}
+			}
+           
         }
 
         return std::make_tuple(std::string(), false);

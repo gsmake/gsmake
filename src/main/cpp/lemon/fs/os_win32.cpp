@@ -140,7 +140,11 @@ namespace lemon {namespace fs {
 	}
 
 	static file_type _Map_mode(int _Mode)
-	{	// map Windows file attributes to file_status
+	{	
+		if ((_Mode &FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+			return (file_type::symlink);
+		
+		// map Windows file attributes to file_status
 		if ((_Mode & FILE_ATTRIBUTE_DIRECTORY) != 0)
 			return (file_type::directory);
 		else if ((_Mode & _FILE_ATTRIBUTE_REGULAR) != 0)

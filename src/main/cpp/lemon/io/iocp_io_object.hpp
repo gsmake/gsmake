@@ -7,6 +7,7 @@
  */
 #ifndef LEMON_IO_IOCP_IO_OJBECT_HPP
 #define LEMON_IO_IOCP_IO_OJBECT_HPP
+#include <utility>
 #include <system_error>
 #include <lemon/config.h>
 #include <lemon/nocopy.hpp>
@@ -47,13 +48,6 @@ namespace lemon{
 				}
 			}
 
-			virtual ~iocp_io_object()
-			{
-				::CloseHandle(_fd);
-
-				iocp_io_service_unregister(service(), this);
-			}
-
 			handler get() const
 			{
 				return _fd;
@@ -91,9 +85,12 @@ namespace lemon{
 			{
 				return _service;
 			}
-
+		protected:
+			void close()
+			{
+				iocp_io_service_unregister(service(), this);
+			}
 		private:
-
 			static void push(iocp_op **header, iocp_op *irp) noexcept
 			{
 				irp->next = *header;

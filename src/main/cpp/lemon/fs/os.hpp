@@ -155,6 +155,8 @@ namespace lemon{ namespace fs{
         }
     }
 
+	inline bool is_symlink(const filepath & source) noexcept;
+
     inline void remove_directories(const filepath & path, std::error_code &err)
     {
         try
@@ -174,7 +176,7 @@ namespace lemon{ namespace fs{
 
                 auto child = path / entry;
 
-                if (is_directory(child))
+                if (is_directory(child) && !is_symlink(child))
                 {
                     remove_directories(child, err);
 
@@ -311,6 +313,20 @@ COPY:
 		}
 
 		return size;
+	}
+
+	inline bool is_symlink(const filepath & source) noexcept
+	{
+		std::error_code err;
+
+		auto fstatus = status(source,err);
+
+		if (err)
+		{
+			return false;
+		}
+
+		return fstatus.type() == file_type::symlink;
 	}
 }}
 

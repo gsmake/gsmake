@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <lemon/log/log.hpp>
 #include <lemon/test/unit.hpp>
 #include <lemon/test/runner.hpp>
 
@@ -64,7 +65,16 @@ namespace lemon{ namespace test{
             return;
         }
 
-        N = (int)(chrono::duration_cast<chrono::nanoseconds>(chrono::seconds(1)).count() / duration.count());
+		if(duration.count() == 0)
+		{
+			N = 100000;
+		}
+		else
+		{
+			N = (int)(chrono::duration_cast<chrono::nanoseconds>(chrono::seconds(1)).count() / duration.count());
+		}
+
+        
 
         start  = clock::now();
 
@@ -72,6 +82,6 @@ namespace lemon{ namespace test{
 
         duration = chrono::duration_cast<chrono::nanoseconds>(clock::now() - start);
 
-        std::cout << "benchmark " << name() << "\t" << duration.count() /  N << " ns/op" << std::endl;
+		lemonI(log::get("test") , "benchmark(%s)\t%d ns/op", name().c_str(),duration.count() / N);
     }
 }}

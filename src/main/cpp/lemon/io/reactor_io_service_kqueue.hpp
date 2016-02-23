@@ -100,7 +100,7 @@ namespace lemon{
 
                         if((k_events[i].filter & EVFILT_WRITE)!=0)
                         {
-                            events[i].ops |= (int)io_event_op::read;
+                            events[i].ops |= (int)io_event_op::write;
                         }
 
                         if(events[i].ops != (int)io_event_op::none)

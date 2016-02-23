@@ -17,6 +17,9 @@ namespace lemon{ namespace os{
 		Alpha,X86,AMD64,ARM,ARM64, HP_PA, MIPS, PowerPC,SPARC
 	};
 
+
+	void setenv(const std::string &name, const std::string &val,std::error_code & ec);
+
 	//
 	// get host name
 	host_t hostname();

@@ -40,6 +40,29 @@ namespace lemon{
 			Callback                _callback;
 		};
 
+
+		template <typename Callback>
+		class iocp_write_op : public iocp_op
+		{
+		public:
+			iocp_write_op(handler fd, Callback && callback)
+				:iocp_op(iocp_op_t::write, fd, (iocp_op::complete_f)iocp_write_op::write_complete)
+				, _callback(callback)
+			{
+
+			}
+
+		private:
+
+			static void write_complete(iocp_write_op* op)
+			{
+				op->_callback(op->_bytes_transferred, op->_ec);
+			}
+
+		private:
+			Callback                _callback;
+		};
+
 		class iocp_io_stream : public iocp_io_object
 		{
 		public:
@@ -48,7 +71,12 @@ namespace lemon{
 			{
 
 			}
-
+		
+			~iocp_io_stream()
+			{
+				close();
+				::CloseHandle(get());
+			}
 		public:
 			template <typename Callback>
 			void read(buffer buff, Callback && callback)
