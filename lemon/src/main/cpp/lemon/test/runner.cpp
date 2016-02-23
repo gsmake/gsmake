@@ -41,6 +41,10 @@ namespace lemon {namespace test{
             {
                 lemonE(logger,"test(%s) -- failed\n\terr :%s\n\tfile :%s(%d)",unit->name().c_str(),e.what(),unit->file().c_str(),unit->lines());
             }
+			catch(...)
+			{
+				lemonE(logger, "test(%s) -- failed\n\terr :unknown exception\n\tfile :%s(%d)", unit->name().c_str(), unit->file().c_str(), unit->lines());
+			}
 
         }
     }

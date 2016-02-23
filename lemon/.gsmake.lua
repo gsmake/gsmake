@@ -1,7 +1,5 @@
 name "github.com/lemonkit/lemon" -- package name
 
-version "develop"
-
 plugin "github.com/gsmake/clang"
 
 

@@ -305,7 +305,7 @@ namespace lemon{
 
 			static handler create_socket(int af, int type, int protocol) 
 			{
-				auto fd = WSASocket(
+				auto fd = WSASocketW(
 					af, type, protocol, NULL, 0, WSA_FLAG_OVERLAPPED);
 
 				if (INVALID_SOCKET == fd)
