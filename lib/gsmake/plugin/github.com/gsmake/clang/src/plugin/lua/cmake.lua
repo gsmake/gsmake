@@ -85,11 +85,13 @@ function module:loadproject (name, config)
         table.insert(srcDirs,filepath.toslash(filepath.join(self.owner.Path,path,dir)));
     end
 
+    print(filepath.toslash(filepath.join(self.owner.Path,path,"src/main")))
+
     local project = class.new("project",{
         Name                        = name;
         Type                        = config["type"];
         OutputDir                   = self.outputdir;
-        SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,name,"src/main"));
+        SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,path,"src/main"));
         SrcDirs                     = srcDirs;
         Deps                        = config["dependencies"] or {};
         Loader                      = loader;
@@ -113,7 +115,7 @@ function module:loadproject (name, config)
            Name                        = name .. "-test";
            Type                        = "exe"; -- the test project's type is execute program
            OutputDir                   = self.outputdir;
-           SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,name,"src/test"));
+           SrcRootDir                  = filepath.toslash(filepath.join(self.owner.Path,path,"src/test"));
            SrcDirs                     = testDirs;
            Deps                        = config["test_dependencies"] or {};
            Loader                      = loader;
