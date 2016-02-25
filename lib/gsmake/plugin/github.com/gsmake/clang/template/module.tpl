@@ -61,6 +61,8 @@ endforeach()
 
 @{{ if Type == "exe" then }}
 @{{ include(exe.tpl) }}
+@{{ elseif Type == "win32" then }}
+@{{ include(win32.tpl) }}
 @{{ elseif Type == "static" then }}
 @{{ include(static.tpl) }}
 @{{ else }}

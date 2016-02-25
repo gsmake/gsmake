@@ -48,6 +48,10 @@ function module:loadproject (name, config)
         config["type"] = loader.Config.ClangModuleType or "static"
     end
 
+    if type(config["type"]) == "function" then
+        config["type"] = config["type"](self.task)
+    end
+
     if config["config"] == nil then
        config["config"] = "config.cmake"
     end
@@ -85,7 +89,6 @@ function module:loadproject (name, config)
         table.insert(srcDirs,filepath.toslash(filepath.join(self.owner.Path,path,dir)));
     end
 
-    print(filepath.toslash(filepath.join(self.owner.Path,path,"src/main")))
 
     local project = class.new("project",{
         Name                        = name;
