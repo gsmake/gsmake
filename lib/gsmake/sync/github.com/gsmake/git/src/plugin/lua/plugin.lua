@@ -54,6 +54,12 @@ task.sync_remote = function(self,name,version,remote)
         if exec:wait() ~= 0 then
             throw("clone git repo from %s -- failed",tmppath)
         end
+
+        exec:start("remote","set-url","origin",remote)
+
+        if exec:wait() ~= 0 then
+            throw("clone git repo from %s -- failed",tmppath)
+        end
     end
 
     local repo = loader.GSMake.Repo
