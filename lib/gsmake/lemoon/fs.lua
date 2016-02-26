@@ -54,7 +54,8 @@ end
 
 
 function module.match(path,pattern,skipdirs,fn)
-    module.list(path,function(entry)
+
+    local ok, err = pcall(module.list,path,function(entry)
         if entry == "." or entry == ".." then return end
 
         for _,v in pairs(skipdirs or {}) do
@@ -71,6 +72,10 @@ function module.match(path,pattern,skipdirs,fn)
             end
         end
     end)
+
+    if not ok then
+        throw("list path %s -- failed\n\t%s",path,err)
+    end
 end
 
 return module
