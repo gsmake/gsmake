@@ -308,25 +308,24 @@ function module:install (install_path)
     install_path = fs.abs(install_path)
 
     for _,project in pairs(self.projects) do
-        for _,header in ipairs(project.HeaderFiles) do
-            local target = header
-            for _,srcDir in ipairs(project.SrcDirs) do
 
-                target = target:gsub(srcDir,"")
+        for _,srcDir in ipairs(project.SrcDirs) do
+
+            for _,pattern in ipairs(project.header_files) do
+                fs.match(srcDir,pattern,project.skips,function(path)
+                    path = filepath.toslash(filepath.clean(path))
+                    local target = path:gsub(srcDir,"")
+                    target = filepath.join(install_path,"include",target)
+
+                    local dir = filepath.dir(target)
+
+                    if not fs.exists(dir) then
+                        fs.mkdir(dir,true)
+                    end
+
+                    fs.copy_file(path,target,fs.update_existing)
+                end)
             end
-
-            target = filepath.join(install_path,"include",target)
-
-            local dir = filepath.dir(target)
-
-            if not fs.exists(dir) then
-
-                fs.mkdir(dir,true)
-
-            end
-
-            fs.copy_file(header,target,fs.update_existing)
-
         end
         console:I("%s -- success",project.Name)
     end
