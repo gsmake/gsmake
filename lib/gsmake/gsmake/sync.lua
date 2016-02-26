@@ -107,7 +107,28 @@ function module:sync_source(name,version)
     return path
 end
 
+function module:updateall()
+    local repoDB    = self.loader.GSMake.Repo
 
+    repoDB:foreach_sync(function(name,path,source,version,downloader,downloaderversion)
+        local path = self:sync(downloader,downloaderversion)
+
+        local plugin = class.new("gsmake.plugin",downloader,self.loader.Package)
+        plugin:version(downloaderversion)
+        plugin:load()
+        plugin:setup()
+
+        local loader = plugin.Loader
+        local package = plugin.Package
+        package.Plugins[package.Name] = plugin
+
+        if loader:run("sync_update",name,version,source,path) then
+            throw("update package '%s:%s' -- failed",name,version)
+        end
+    end)
+
+    repoDB:remove_all_source()
+end
 -- sync package's
 function module:sync (name,version)
 

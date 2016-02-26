@@ -36,13 +36,14 @@ function module.ctor (gsmake,path)
             create unique index if not exists _SOURCE_FULLNAME_INDEXER ON _SOURCE (_NAME,_VERSION);
             create table if not exists _SYNC
             (
-               _NAME        TEXT,
-               _PATH        TEXT,
-               _SOURCE      TEXT,
-               _VERSION     TEXT,
-               _PROTOCOL    TEXT
+               _NAME                TEXT,
+               _PATH                TEXT,
+               _SOURCE              TEXT,
+               _VERSION             TEXT,
+               _DOWNLOADER          TEXT,
+               _DOWNLOADER_VERSION  TEXT
             );
-            create unique index if not exists _SYNC_FULLNAME_INDEXER ON _SYNC (_NAME,_VERSION,_PROTOCOL);
+            create unique index if not exists _SYNC_FULLNAME_INDEXER ON _SYNC (_NAME,_VERSION);
         ]])
     end)
 
@@ -76,10 +77,20 @@ function module:query_sync(name,version)
     local SQL = string.format('SELECT * FROM _SYNC WHERE _NAME="%s" and _VERSION="%s"',name,version)
 
     return self:exec(function(db)
-        for _,path,_,_,_ in db:urows(SQL) do
-            return true,path
+        for _,path,source,version,protocol in db:urows(SQL) do
+            return true,path,source,version,protocol
         end
         return false
+    end)
+end
+
+function module:foreach_sync(callback)
+    local SQL = string.format('SELECT * FROM _SYNC')
+
+    return self:exec(function(db)
+        for name,path,source,version,downloader,downloaderversion  in db:urows(SQL) do
+            callback(name,path,source,version,downloader,downloaderversion)
+        end
     end)
 end
 
@@ -91,13 +102,13 @@ function module:remove_sync(name,version)
     end)
 end
 
-function module:save_sync(name,version,source,path,sync,force)
+function module:save_sync(name,version,source,path,downloader,downloaderversion,force)
 
     if force then
         self:remove_sync(name,version)
     end
 
-    local SQL = string.format('insert into _SYNC VALUES("%s","%s","%s","%s","%s")',name,path,source,version,sync)
+    local SQL = string.format('insert into _SYNC VALUES("%s","%s","%s","%s","%s","%s")',name,path,source,version,downloader,downloaderversion)
 
     self:exec(function(db)
         sqlexec(db,SQL)
@@ -108,6 +119,15 @@ end
 function module:remove_source(name,version)
 
     local SQL = string.format('delete FROM _SOURCE WHERE _NAME="%s" and _VERSION="%s"',name,version)
+
+    self:exec(function(db)
+        sqlexec(db,SQL)
+    end)
+end
+
+function module:remove_all_source(name,version)
+
+    local SQL = 'delete FROM _SOURCE WHERE _CACHED=0'
 
     self:exec(function(db)
         sqlexec(db,SQL)

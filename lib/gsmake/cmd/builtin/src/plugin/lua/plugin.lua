@@ -14,6 +14,21 @@ task.list = function(self)
 end
 task.list.Desc = "list all task"
 
+task.update = function(self)
+    local sync = self.Owner.Loader.Sync
+    sync:updateall()
+end
+task.update.Desc = "update cached repo"
+
+task.repo = function(self,name)
+    local repoDB = self.Owner.Loader.GSMake.Repo
+
+    repoDB:foreach_sync(function(name,path,source,version,protocol)
+        print(string.format("[%s] repo<%s> : %s",protocol,name,source))
+    end)
+end
+task.repo.Desc = "list all cache repo"
+
 
 task.cache = function(self,cmd,path)
 

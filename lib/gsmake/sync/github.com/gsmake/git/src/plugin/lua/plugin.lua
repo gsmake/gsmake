@@ -56,42 +56,30 @@ task.sync_remote = function(self,name,version,remote)
         end
     end
 
-    local sourceTarget = filepath.join(workdir,version)
-
-    if fs.exists(sourceTarget) then
-        fs.rm(sourceTarget,true)
-    end
-
-    local exec = sys.exec(gitpath)
-
-    exec:dir(workdir)
-    exec:start("clone",target,version)
-
-    if exec:wait() ~= 0 then
-        throw("clone git repo from %s -- failed",target)
-    end
-
-    local gitversion = version
-
-    if gitversion == loader.Config.DefaultVersion then
-        gitversion = "master"
-    end
-
-    exec:dir(sourceTarget)
-    exec:start("checkout",gitversion)
-
-    if exec:wait() ~= 0 then
-        throw("git repo(%s) checkout %s -- failed",sourceTarget,gitversion)
-    end
-
     local repo = loader.GSMake.Repo
 
-    repo:save_sync(name,version,remote,target,"git",true)
-
-    repo:save_source(name,version,target,sourceTarget,true)
+    repo:save_sync(name,version,remote,target,self.Package.Name,self.Package.Version,true)
 end
 task.sync_remote.Desc = "git downloader#sync_remote"
 task.sync_remote.Prev = "sync_init"
+
+
+task.sync_update = function(self,name,version,remote,path)
+
+    print(string.format("update repo(git) :%s",name))
+
+    local exec = sys.exec(gitpath)
+
+    exec:dir(path)
+
+    exec:start("remote","update")
+
+    if exec:wait() ~= 0 then
+        throw("clone git repo from %s -- failed",tmppath)
+    end
+end
+task.sync_update.Desc = "git downloader#sync_update"
+task.sync_update.Prev = "sync_init"
 
 
 task.sync_source = function(self,name,version)
@@ -131,8 +119,6 @@ task.sync_source = function(self,name,version)
     end
 
     local repo = loader.GSMake.Repo
-
-    repo:save_sync(name,version,remote,target,"git",true)
 
     repo:save_source(name,version,target,sourceTarget,true)
 end
