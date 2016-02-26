@@ -55,6 +55,7 @@ task.sync_remote = function(self,name,version,remote)
             throw("clone git repo from %s -- failed",tmppath)
         end
 
+        exec:dir(filepath.join(workdir,"mirror"))
         exec:start("remote","set-url","origin",remote)
 
         if exec:wait() ~= 0 then
