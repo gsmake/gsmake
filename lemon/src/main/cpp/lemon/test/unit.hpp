@@ -2,6 +2,7 @@
 #define LEMON_TEST_UNIT_HPP
 
 #include <string>
+#include <chrono>
 #include <lemon/nocopy.hpp>
 
 namespace lemon { namespace test {
@@ -76,9 +77,19 @@ namespace lemon { namespace test {
 
         void run();
 
+		void stop_timer();
+
+		void start_timer();
+
     public:
 
         int             N;
+
+	private:
+
+		std::chrono::high_resolution_clock::time_point		_stop_timepoint;
+
+		std::chrono::nanoseconds							_stopduration;
     };
 }}
 

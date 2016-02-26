@@ -44,6 +44,19 @@ namespace lemon{ namespace test{
 
     }
 
+	void B::stop_timer()
+	{
+		_stop_timepoint = std::chrono::high_resolution_clock::now();
+	}
+
+	void B::start_timer()
+	{
+		_stopduration += 
+			std::chrono::duration_cast<std::chrono::nanoseconds>(
+			std::chrono::high_resolution_clock::now() - _stop_timepoint
+			);
+	}
+
     void B::run()
     {
         // first test
@@ -60,6 +73,10 @@ namespace lemon{ namespace test{
 
         auto duration = chrono::duration_cast<chrono::nanoseconds>(clock::now() - start);
 
+		duration -= _stopduration;
+
+		_stopduration = chrono::nanoseconds::zero();
+
         if (duration > chrono::seconds(1))
         {
             return;
@@ -74,13 +91,11 @@ namespace lemon{ namespace test{
 			N = (int)(chrono::duration_cast<chrono::nanoseconds>(chrono::seconds(1)).count() / duration.count());
 		}
 
-        
-
         start  = clock::now();
 
         main();
 
-        duration = chrono::duration_cast<chrono::nanoseconds>(clock::now() - start);
+        duration = chrono::duration_cast<chrono::nanoseconds>(clock::now() - start) - _stopduration;
 
 		lemonI(log::get("test") , "benchmark(%s)\t%d ns/op", name().c_str(),duration.count() / N);
     }
