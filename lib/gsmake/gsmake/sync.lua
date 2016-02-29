@@ -110,7 +110,7 @@ end
 function module:updateall()
     local repoDB    = self.loader.GSMake.Repo
 
-    repoDB:foreach_sync(function(name,path,source,version,downloader,downloaderversion)
+    repoDB:foreach_sync(function(name,repopath,source,version,downloader,downloaderversion)
         local path = self:sync(downloader,downloaderversion)
 
         local plugin = class.new("gsmake.plugin",downloader,self.loader.Package)
@@ -122,7 +122,7 @@ function module:updateall()
         local package = plugin.Package
         package.Plugins[package.Name] = plugin
 
-        if loader:run("sync_update",name,version,source,path) then
+        if loader:run("sync_update",name,version,source,repopath) then
             throw("update package '%s:%s' -- failed",name,version)
         end
     end)

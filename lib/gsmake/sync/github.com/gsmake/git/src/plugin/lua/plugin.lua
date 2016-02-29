@@ -73,7 +73,7 @@ task.sync_remote.Prev = "sync_init"
 
 task.sync_update = function(self,name,version,remote,path)
 
-    print(string.format("update repo(git) :%s",name))
+    print(string.format("update repo(git) :%s",path))
 
     local exec = sys.exec(gitpath)
 
