@@ -248,7 +248,6 @@ function module:cmakegen ()
         exec:start("-A","x64","..")
     else
         exec:start("..")
-
     end
 
     if 0 ~= exec:wait() then

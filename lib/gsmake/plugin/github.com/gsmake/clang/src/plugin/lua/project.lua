@@ -104,7 +104,10 @@ function module:link(projects)
             local proj = projects[dep]
 
             if proj == nil then
-                throw("[%s] depend inner project [%s] -- not found ",self.Name,dep)
+                proj = {
+                   Name           = dep;
+                   External       = true;
+                }
             end
 
             logger:D("found project [%s] dependency %s",self.Name,dep)
