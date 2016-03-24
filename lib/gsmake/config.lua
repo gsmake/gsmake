@@ -8,4 +8,5 @@ return {
     TargetArch              = require "lemoon.sys" .arch();
     Host                    = require "lemoon.sys" .host();
     Arch                    = require "lemoon.sys" .arch();
+    BuildConfig             = "Debug";
 }

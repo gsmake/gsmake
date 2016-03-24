@@ -30,13 +30,15 @@ function module.ctor (task)
 
     loader = task.Owner.Loader
 
+    local buildconfig = task.Owner.Loader.Config.BuildConfig
+
     obj.cmake_root_dir = filepath.join(
         loader.Temp,"cmake",
         loader.Config.TargetHost .. "-" .. loader.Config.TargetArch)
 
     obj.outputdir = filepath.toslash(filepath.join(
         loader.Temp,"clang",
-        loader.Config.TargetHost .. "-" .. loader.Config.TargetArch))
+        loader.Config.TargetHost .. "-" .. loader.Config.TargetArch .. "-" .. buildconfig))
 
     return obj
 end
