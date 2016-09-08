@@ -123,12 +123,18 @@ namespace lemon {
 			void destroy(Class* obj, referid)
 			{
 
+                typedef typename std::remove_cv<Class>::type T;
+
+                auto gcobj = gc_object_cast<Class>(obj);
+
+                auto typeinfo = &typeid((T*)0);
+
 				auto iter = _classheaps.find(typeinfo);
 
 				if (iter != _classheaps.end())
 				{
 					gc_object_cast<Class>(obj)->marked = gc_object::gray;
-					iter->second->unlock(gcobj, (uint32_t)(id & 0xffffffff));
+					iter->second->unlock(gcobj, (uint32_t)(_id & 0x000000000ffffffff));
 				}
 			}
 

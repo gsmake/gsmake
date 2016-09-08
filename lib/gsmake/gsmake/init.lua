@@ -1,185 +1,64 @@
--- initialize gsmake's sandbox system
-
-local debug 		= _G.debug
-local loadfile 	= _G.loadfile
-local loadlib   = _G.package.loadlib
-local throw 		= require "lemoon.throw"
-
-
-local function createlualoader(filename)
-	local f,err = loadfile(filename)
-	if f == nil then
-		return err
-	end
-	return function()
-		return {
-
-            ["__sandbox"] = function(env)
-                 if env then
-                     debug.setupvalue(f, 1, env)
-                 end
-                 return f()
-             end
-         }
-	end
-end
-
--- lua searcher
-local function luasearcher(name)
-
-	local filename, err = package.searchpath(name, package.path or "")
-
-	if filename == nil then
-		return err
-	else
-		return createlualoader(filename)
-	end
-end
+--
+-- Created by IntelliJ IDEA.
+-- User: yayanyang
+-- Date: 16/9/8
+-- Time: 下午4:57
+-- To change this template use File | Settings | File Templates.
+--
+local fs        = require "lemoon.fs"
+local class     = require "lemoon.class"
+local logger    = class.new("lemoon.log","gsmake")
+local logsink   = require "lemoon.logsink"
+local filepath  = require "lemoon.filepath"
+local module    = {}
 
 
-local function createcloader(path,name)
+local openlog = function(gsmake)
 
-	local f,err = loadlib(path,name)
-	if f == nil then
-		return err
-	end
-	return function()
-		return {
-            ["__sandbox"] = function(env)
-                 if env then
-                     debug.setupvalue(f, 1, env)
-                 end
-                 return f()
-             end
-         }
-	end
-end
+    local name = "gsmake" .. os.date("-%Y-%m-%d-%H_%M_%S")
 
--- lua searcher
-local function csearcher(name)
+    local path = filepath.join(gsmake.config.workspace,gsmake.config.tempdir,"log")
+    print(path)
+    if not fs.exists(path) then
 
-	local filename, err = package.searchpath(name, package.cpath or "")
-	if filename == nil then
-		return err
-	else
-		return createcloader(filename,"luaopen_" .. name)
-	end
-end
-
-
-
-local function resetloaded(loaded)
-    local recover = {}
-
-    for k,v in pairs(_G.package.loaded) do
-        recover[k] = v
-        _G.package.loaded[k] = nil
+        fs.mkdir(path,true)
     end
 
-    for k,v in pairs(loaded) do
-        _G.package.loaded[k] = v
-    end
-
-    return recover
+    logsink.file_sink(
+        "",
+        path,
+        name,
+        ".log",
+        false,
+        1024*1024*10)
 end
 
-local preload = resetloaded(_G.package.loaded)
+-- gsmake initializer
+function module.ctor()
+    local gsmake = { config = {} }
 
-local sandbox = {}
+    gsmake.config.home = os.getenv("GSMAKE_HOME")
+    gsmake.config.workspace = fs.dir()
+    gsmake.config.tempdir = ".gsmake"
 
-function sandbox.new(name,...)
+    local configsandbox = class.new("gsmake.sandbox")
 
-    local env = {}
+    configsandbox:dofile(filepath.join(gsmake.config.workspace,"etc/config.lua"),{
+        config = gsmake.config
+    })
 
-    for k,v in pairs(_G) do
-        env[k] = v
-    end
+    openlog(gsmake)
 
-    env.package         = {}
+    logger:I("gsmake home :%s",gsmake.config.home)
+    logger:I("gsmake workspace :%s",gsmake.config.workspace)
 
-    for k,v in pairs(_G.package) do
-        env.package[k] = v
-    end
-
-    env.package.loaded      = preload
-    env.package.preload     = {}
-    env.package.searchers   = {  csearcher, luasearcher }
-
-    -- create new require
-    env.require = function(name)
-
-        local idx = 1
-        while true do
-            local name,val = debug.getupvalue(luasearcher,idx)
-            if not name then break end
-
-            if name == "_ENV" then
-                debug.setupvalue(luasearcher,idx,env)
-                break
-            end
-
-            idx = idx + 1
-        end
-
-        local reconver = resetloaded(env.package.loaded)
-        debug.setupvalue(_G.require,1,env.package)
-        local ok, block = pcall(_G.require,name)
-		if not ok then
-			throw("%s",block)
-		end
-        env.package.loaded = resetloaded(reconver)
-
-        if type(block) == "table" and type(block["__sandbox"]) == "function" then
-            block = block["__sandbox"](env)
-        end
-
-        return block
-    end
-
-    if name then
-        require(name).ctor(env,...)
-    end
-
-    -- create sandbox env cached buff
-    sandbox[env] = {}
-
-    return env
+    return gsmake
 end
 
-local function runfunction(call,env,...)
-	local idx = 1
-	while true do
-        local name,_ = debug.getupvalue(call, idx)
+-- install package
+function module:install(global, packages)
 
-        if not name then break end
-
-        if name == "_ENV" then
-            debug.setupvalue(call,idx,env)
-            break
-        end
-
-        idx = idx + 1
-    end
-
-	return call(...)
 end
 
-local function runscript(script,env)
-	 local block,err = loadfile(script,"bt",env)
+return module
 
-	 if err ~= nil then
-        throw(err)
-     end
-
-    return block()
-end
-
-function sandbox.run(block,env,...)
-	if type(block) == "function" then
-		return runfunction(block,env,...)
-	else
-		return runscript(block,env,...)
-	end
-end
-
-_G.sandbox = sandbox

@@ -4,7 +4,7 @@
 #ifdef WIN32
 #include <lemon/io/iocp_io_socket.hpp>
 #else
-#include <lemon/io/io_socket.hpp>
+#include <lemon/io/reactor_io_socket.hpp>
 #endif //WIN32
 
 #include <lemon/io/io_service.hpp>

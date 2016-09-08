@@ -1,118 +1,38 @@
 --
 -- this file is gsmake boostrap lua script file
 --
-
-require "gsmake"
-_ENV = sandbox.new()
-
-
-local fs        = require "lemoon.fs"
+local cli       = require "cliargs"
 local class     = require "lemoon.class"
 local console   = class.new("lemoon.log","console")
+local gsmake    = class.new("gsmake")
 
-local options = {
+cli:set_name("gsmake")
 
-    ["^-host"] = {
-        value = true;
-
-        call = function (config,val)
-            local host = require "gsmake.host"
-            if not host[val] then
-                console:W("TargetHost(%s) not changed : unsupport host %s",gsmake.Config.TargetHost,val)
-                return
-            end
-
-            config.TargetHost = val
+cli
+    :command("install", "installs dependencies from ./.gsmake.lua or specify one or more gsmake package")
+    :flag("-g --global","install package into global directory")
+    :splat("PACKAGES","installing package list",nil,99)
+    :action(function(options)
+        for i,v in ipairs(options.PACKAGES) do
+            console:I("%d %s",i,v)
         end
-    };
+    end)
 
-    ["^-arch"] = {
-        value = true;
+local parseargs = function()
+    local args, err = cli:parse(arg)
 
-        call = function (config,val)
-            local arch = require "gsmake.arch"
-            if not arch[val] then
-                console:W("TargetArch(%s) not changed : unsupport arch %s",gsmake.Config.TargetArch,val)
-                return
-            end
-
-            config.TargetArch = val
-        end
-    };
-
-    ["^-reload"] = {
-        call = function (config)
-            config.Reload = true
-        end;
-    };
-
-    ["^-config"] = {
-        value = true;
-
-        call = function (config,val)
-            config.BuildConfig = val
-        end;
-    };
-
-    ["^-clear"] = {
-        call = function (config)
-            config.BuildClear = true
-        end;
-    }
-}
-
-
-local function parseoptions (gsmake,args)
-
-    local skip = false
-
-    for i,arg in ipairs(args) do
-        if not skip then
-            local stop = true
-            for option,ctx in pairs(options) do
-                if arg:match(option) then
-                    local val = nil
-                    if ctx.value then
-                        val = arg:sub(#option)
-                        if not val or val == "" then
-                            val = args[i + 1]
-                            skip = true
-                        end
-
-                        if not val  or val == ""  then
-                            throw("expect option(%s)'s val ",option:sub(2))
-                        end
-                    end
-
-                    ctx.call(gsmake,val)
-                    stop = false
-                    break
-                end
-            end
-
-            if stop then
-                return table.pack(table.unpack(args,i))
-            end
-        else
-            skip = false
-        end
+    if not args and err then
+        console:E(string.format('%s: %s; re-run with help for usage', cli.name, err))
+        return false
     end
 
-    return {}
+    return true, args
 end
---
---
+
 local main = function  ()
+    local ok = parseargs()
 
-    local config      = class.clone(require "config")
-    local remotes     = class.clone(require "remotes")
-    local args        = parseoptions(config,arg)
-
-    local gsmake = class.new("gsmake.gsmake",config,remotes)
-
-    if gsmake:run(table.unpack(args)) then
-      console:E("run gsmake -- failed !!!!!")
-    end
+    if not ok then return end
 end
 
 
